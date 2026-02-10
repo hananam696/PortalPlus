@@ -93,7 +93,7 @@ export default function BooksListPage() {
 
               {/* NOTE: we will create this page later */}
               <Link
-                href="/rental-hub/books/post"
+                href="/rental-hub/post/book/"
                 className="bg-green-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2"
               >
                 <Plus size={18} />
