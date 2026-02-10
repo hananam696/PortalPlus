@@ -1,14 +1,14 @@
 "use client";
 
+import { FileText, Home, Leaf, Map, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Leaf, Home, Map, FileText, MessageCircle } from "lucide-react";
 
 export default function Navbar() {
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        
+
         {/* LOGO */}
         <Link href="/" className="flex items-center gap-3">
           <Image
@@ -25,7 +25,7 @@ export default function Navbar() {
         {/* NAV LINKS */}
         <div className="hidden md:flex items-center gap-8 text-gray-600">
           <NavItem icon={<Leaf size={18} />} label="Sustainability" link="/sustainability" />
-          <NavItem icon={<Home size={18} />} label="Rental Hub" link="/rental" />
+          <NavItem icon={<Home size={18} />} label="Rental Hub" link="/rental-hub" />
           <NavItem icon={<Map size={18} />} label="Campus Map" link="/campus-map" />
           <NavItem icon={<FileText size={18} />} label="Certificates" link="/certificates" />
         </div>
