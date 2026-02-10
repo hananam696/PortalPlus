@@ -12,74 +12,32 @@ import {
   Plus,
 } from "lucide-react";
 
+import { BOOKS } from "./data";
+
 export default function BooksListPage() {
   const [query, setQuery] = useState("");
-  const [courseFilter, setCourseFilter] = useState("All");
+  const [departmentFilter, setDepartmentFilter] = useState("All");
   const [availabilityFilter, setAvailabilityFilter] = useState("All");
   const [conditionFilter, setConditionFilter] = useState("All");
 
-  // Mock data (later we can connect to database / API)
-  const books = [
-    {
-      id: "cs101",
-      title: "Introduction to Programming",
-      author: "John Smith",
-      course: "CS101",
-      condition: "Good",
-      available: true,
-      price: "Free",
-    },
-    {
-      id: "math201",
-      title: "Calculus for Engineers",
-      author: "James Stewart",
-      course: "MATH201",
-      condition: "Like New",
-      available: true,
-      price: "10 QAR",
-    },
-    {
-      id: "bus110",
-      title: "Business Essentials",
-      author: "Peter Drucker",
-      course: "BUS110",
-      condition: "Fair",
-      available: false,
-      price: "Free",
-    },
-    {
-      id: "it220",
-      title: "Database Systems",
-      author: "R. Elmasri",
-      course: "IT220",
-      condition: "Good",
-      available: true,
-      price: "5 QAR",
-    },
-    {
-      id: "eng150",
-      title: "Academic Writing Guide",
-      author: "L. Carter",
-      course: "ENG150",
-      condition: "Like New",
-      available: true,
-      price: "Free",
-    },
-  ];
+  // Filters based on shared data.js
+  const departments = useMemo(() => {
+    const unique = Array.from(new Set(BOOKS.map((b) => b.department)));
+    return ["All", ...unique];
+  }, []);
 
-  const courses = ["All", "CS101", "MATH201", "BUS110", "IT220", "ENG150"];
   const conditions = ["All", "Like New", "Good", "Fair"];
   const availability = ["All", "Available", "Unavailable"];
 
   const filteredBooks = useMemo(() => {
-    return books.filter((b) => {
+    return BOOKS.filter((b) => {
       const matchesQuery =
         b.title.toLowerCase().includes(query.toLowerCase()) ||
         b.author.toLowerCase().includes(query.toLowerCase()) ||
-        b.course.toLowerCase().includes(query.toLowerCase());
+        b.department.toLowerCase().includes(query.toLowerCase());
 
-      const matchesCourse =
-        courseFilter === "All" ? true : b.course === courseFilter;
+      const matchesDepartment =
+        departmentFilter === "All" ? true : b.department === departmentFilter;
 
       const matchesCondition =
         conditionFilter === "All" ? true : b.condition === conditionFilter;
@@ -92,10 +50,13 @@ export default function BooksListPage() {
           : !b.available;
 
       return (
-        matchesQuery && matchesCourse && matchesCondition && matchesAvailability
+        matchesQuery &&
+        matchesDepartment &&
+        matchesCondition &&
+        matchesAvailability
       );
     });
-  }, [books, query, courseFilter, conditionFilter, availabilityFilter]);
+  }, [query, departmentFilter, conditionFilter, availabilityFilter]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -130,8 +91,9 @@ export default function BooksListPage() {
                 {filteredBooks.length} results
               </div>
 
+              {/* NOTE: we will create this page later */}
               <Link
-                href="/rental-hub/post/book"
+                href="/rental-hub/books/post"
                 className="bg-green-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2"
               >
                 <Plus size={18} />
@@ -146,7 +108,7 @@ export default function BooksListPage() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by title, author, or course..."
+              placeholder="Search by title, author, or department..."
               className="ml-3 w-full bg-transparent outline-none text-gray-700"
             />
           </div>
@@ -155,10 +117,10 @@ export default function BooksListPage() {
           <div className="mt-6 flex flex-wrap gap-3">
             <FilterPill
               icon={<GraduationCap size={16} />}
-              label="Course"
-              value={courseFilter}
-              options={courses}
-              onChange={setCourseFilter}
+              label="Department"
+              value={departmentFilter}
+              options={departments}
+              onChange={setDepartmentFilter}
             />
 
             <FilterPill
@@ -184,9 +146,7 @@ export default function BooksListPage() {
       <div className="max-w-7xl mx-auto px-6 py-12">
         {filteredBooks.length === 0 ? (
           <div className="bg-white rounded-3xl shadow p-10 text-center">
-            <h2 className="text-xl font-bold text-gray-900">
-              No books found
-            </h2>
+            <h2 className="text-xl font-bold text-gray-900">No books found</h2>
             <p className="text-gray-600 mt-2">
               Try changing the filters or search keywords.
             </p>
@@ -228,7 +188,7 @@ function FilterPill({ icon, label, value, options, onChange }) {
 
 function BookCard({ book }) {
   return (
-    <Link href={`/rental-hub/books/${book.id}`}>
+    <Link href={`/rental-hub/books/${book.id}`} className="block">
       <div className="bg-white rounded-3xl shadow hover:shadow-xl transition p-7 cursor-pointer relative overflow-hidden">
         {/* Availability badge */}
         <div
@@ -241,9 +201,13 @@ function BookCard({ book }) {
           {book.available ? "Available" : "Unavailable"}
         </div>
 
-        {/* Fake book cover */}
-        <div className="h-36 rounded-2xl bg-gradient-to-br from-green-100 to-gray-50 border flex items-center justify-center mb-5">
-          <BookOpen className="text-green-700" size={38} />
+        {/* Book cover */}
+        <div className="h-40 rounded-2xl border overflow-hidden mb-5">
+          <img
+            src={book.cover}
+            alt={book.title}
+            className="w-full h-full object-cover"
+          />
         </div>
 
         <h3 className="text-lg font-bold text-gray-900 leading-snug">
@@ -254,7 +218,7 @@ function BookCard({ book }) {
 
         <div className="mt-4 flex flex-wrap gap-2">
           <span className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-full font-medium">
-            {book.course}
+            {book.department}
           </span>
 
           <span className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-full font-medium">
@@ -262,7 +226,7 @@ function BookCard({ book }) {
           </span>
 
           <span className="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-full font-semibold">
-            {book.price}
+            Rent: {book.rentPrice} QAR / week
           </span>
         </div>
 
