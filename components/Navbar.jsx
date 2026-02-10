@@ -24,6 +24,7 @@ export default function Navbar() {
 
         {/* NAV LINKS */}
         <div className="hidden md:flex items-center gap-8 text-gray-600">
+          <NavItem icon={<Home size={18} />} label="Home" link="/" />
           <NavItem icon={<Leaf size={18} />} label="Sustainability" link="/sustainability" />
           <NavItem icon={<Home size={18} />} label="Rental Hub" link="/rental-hub" />
           <NavItem icon={<Map size={18} />} label="Campus Map" link="/campus-map" />
