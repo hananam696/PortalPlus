@@ -1,16 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import Link from "next/link";
-import Image from "next/image";
 import {
-  ArrowLeft,
-  Cpu,
-  Leaf,
-  Lightbulb,
-  Award
+    ArrowLeft,
+    Award,
+    Cpu,
+    Lightbulb
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
 
 export default function AIoTLabPage() {
   const [showQuiz, setShowQuiz] = useState(false);
