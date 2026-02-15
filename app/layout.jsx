@@ -5,7 +5,7 @@ import Chatbot from "../components/Chatbot";
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50">
+      <body className="bg-white-50">
         <Navbar />
         {children}
         <Chatbot />

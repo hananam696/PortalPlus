@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-40">
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
 
         {/* LOGO */}
@@ -17,8 +17,8 @@ export default function Navbar() {
             width={40}
             height={40}
           />
-          <span className="text-xl font-bold text-green-700">
-            PortalPlus
+          <span className="text-xl font-bold text-gray-900">
+            Portal<span className="text-emerald-600">Plus</span>
           </span>
         </Link>
 
@@ -34,10 +34,10 @@ export default function Navbar() {
         {/* AI CHAT BUTTON */}
         <Link
           href="#"
-          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition"
+          className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-full hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md"
         >
           <MessageCircle size={18} />
-          AI Assistant
+          <span className="font-medium">AI Assistant</span>
         </Link>
       </div>
     </nav>
@@ -48,7 +48,7 @@ function NavItem({ icon, label, link }) {
   return (
     <Link
       href={link}
-      className="flex items-center gap-2 hover:text-green-600 transition"
+      className="flex items-center gap-2 hover:text-emerald-600 transition-colors font-medium text-sm"
     >
       {icon}
       {label}
