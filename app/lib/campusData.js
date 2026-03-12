@@ -29,7 +29,7 @@ id:"cet09",
 number:"09",
 name:"College of Engineering & Technology",
 shortName:"CET",
-image:"/campus/engineering.jpg",
+image:"/campus/engineering.png",
 isSustainability:false,
 category:"academic",
 coordinates:{top:48,left:45,width:9,height:11},
@@ -62,13 +62,24 @@ color:"rose"
 {
 id:"chs20",
 number:"20",
-name:"College of Health Sciences Annex",
+name:"College of Health Sciences",
 shortName:"CHS Annex",
 image:"/campus/chs.jpg",
 isSustainability:false,
 category:"academic",
 coordinates:{top:36,left:30,width:10,height:13},
 color:"rose"
+},
+{
+id:"faculty07",
+number:"07",
+name:"Faculty Offices",
+shortName:"Faculty Offices",
+image:"/campus/faculty-offices.jpg",
+isSustainability:false,
+category:"offices",
+coordinates:{top:58,left:33,width:9,height:11},
+color:"blue"
 },
 
 {
@@ -110,7 +121,7 @@ color:"slate"
 {
 id:"foodcourt",
 number:"FC",
-name:"Food Court",
+name:"EAT - Food Court",
 shortName:"Food Court",
 image:"/campus/foodcourt.jpg",
 isSustainability:false,
@@ -225,8 +236,18 @@ isSustainability:true,
 category:"sustainability",
 coordinates:{top:24,left:85,width:8,height:9},
 color:"lime"
+},
+{
+id:"clinic06",
+number:"06",
+name:"Campus Clinic",
+shortName:"Clinic",
+image:"/campus/clinic.png",
+isSustainability:false,
+category:"clinic",
+coordinates:{top:55,left:40,width:9,height:11},
+color:"red"
 }
-
 ]
 
 
@@ -234,6 +255,7 @@ export const filterCategories=[
 {id:"all",label:"Show All"},
 {id:"academic",label:"Colleges"},
 {id:"sustainability",label:"Sustainability Spots"},
+{id:"clinic",label:"Clinic & Health"},
 {id:"dining",label:"Dining"},
 {id:"parking",label:"Parking"},
 {id:"services",label:"Services"},
