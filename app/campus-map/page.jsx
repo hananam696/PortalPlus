@@ -1,15 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { useMemo, useState } from "react";
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
-import {
-  Filter,
-  Leaf
-} from "lucide-react";
+import { Filter, Leaf } from "lucide-react";
 
-import { buildings, filterCategories, colorMap } from "../lib/campusData";
+import { buildings, filterCategories } from "../lib/campusData";
 
 export default function CampusMapPage() {
 
@@ -43,7 +40,7 @@ return (
 </div>
 
 <span className="text-emerald-400 font-semibold tracking-wide">
-UDST SUSTAINABILITY HUB
+UDST Campus Explorer
 </span>
 
 </div>
@@ -53,11 +50,10 @@ Interactive Campus Map
 </h1>
 
 <p className="mt-3 text-slate-300 text-lg max-w-2xl">
-Hover buildings to preview them and click to explore more.
+Drag to move the map, zoom in/out, and hover markers to explore campus locations.
 </p>
 
 </div>
-
 
 {/* FILTER BAR */}
 
@@ -67,7 +63,7 @@ Hover buildings to preview them and click to explore more.
 
 <div className="flex items-center gap-2 text-slate-300 mb-3">
 <Filter size={18}/>
-<span className="font-semibold">Filter Buildings</span>
+<span className="font-semibold">Filter Locations</span>
 </div>
 
 <div className="flex flex-wrap gap-3">
@@ -75,16 +71,13 @@ Hover buildings to preview them and click to explore more.
 {filterCategories.map((cat)=>{
 
 const active = selectedFilter === cat.id;
-const count = cat.id === "all"
-? buildings.length
-: buildings.filter(b=>b.category===cat.id).length;
 
 return (
 
 <button
 key={cat.id}
 onClick={()=>setSelectedFilter(cat.id)}
-className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition
+className={`px-4 py-2 rounded-xl text-sm font-semibold transition
 ${active
 ? "bg-emerald-600 text-white"
 : "bg-slate-700 text-slate-300 hover:bg-slate-600"
@@ -92,10 +85,6 @@ ${active
 >
 
 {cat.label}
-
-<span className="text-xs px-2 py-0.5 rounded-full bg-black/30">
-{count}
-</span>
 
 </button>
 
@@ -109,7 +98,6 @@ ${active
 
 </div>
 
-
 {/* MAP */}
 
 <div className="max-w-7xl mx-auto px-6">
@@ -118,16 +106,17 @@ ${active
 
 <TransformWrapper
 initialScale={1}
-minScale={0.8}
+minScale={0.7}
 maxScale={4}
-wheel={{ step: 0.2 }}
+wheel={{ step: 0.15 }}
+panning={{ velocityDisabled: true }}
 >
 
 {({ zoomIn, zoomOut, resetTransform }) => (
 
 <>
 
-{/* ZOOM BUTTONS */}
+{/* ZOOM CONTROLS */}
 
 <div className="absolute right-4 top-4 flex flex-col gap-2 z-50">
 
@@ -156,21 +145,53 @@ className="w-10 h-10 bg-slate-800 border border-slate-600 rounded-lg hover:bg-sl
 
 <TransformComponent>
 
-<div className="relative w-full aspect-[16/9]">
+{/* <div className="relative w-full aspect-[16/9] cursor-grab active:cursor-grabbing"> */}
+<div
+className="relative w-full aspect-[16/9] cursor-grab active:cursor-grabbing"
+onClick={(e)=>{
 
-<img
+const rect = e.currentTarget.getBoundingClientRect()
+
+const x = e.clientX - rect.left
+const y = e.clientY - rect.top
+
+const leftPercent = (x / rect.width) * 100
+const topPercent = (y / rect.height) * 100
+
+console.log(`top:${topPercent.toFixed(2)}, left:${leftPercent.toFixed(2)}`)
+
+}}
+>
+
+{/* <img
 src="/campus/campus-map.png"
 alt="Campus Map"
 className="w-full h-full object-cover"
-/>
+/> */}
+<img
+  src="/campus/campus-map.png"
+  alt="Campus Map"
+  className="w-full h-full object-cover"
+  onClick={(e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
 
-{/* BUILDING HOTSPOTS */}
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const left = (x / rect.width) * 100;
+    const top = (y / rect.height) * 100;
+
+    console.log("coordinates:", {
+      top: Number(top.toFixed(2)),
+      left: Number(left.toFixed(2))
+    });
+  }}
+/>
+{/* MARKERS */}
 
 <div className="absolute inset-0">
 
 {filteredBuildings.map((building)=>{
-
-const colors = colorMap[building.color] || colorMap.emerald;
 
 return (
 
@@ -180,8 +201,7 @@ className="absolute"
 style={{
 top:`${building.coordinates.top}%`,
 left:`${building.coordinates.left}%`,
-width:`${building.coordinates.width}%`,
-height:`${building.coordinates.height}%`
+transform:"translate(-50%, -50%)"
 }}
 
 onMouseEnter={(e)=>{
@@ -199,19 +219,13 @@ onMouseLeave={()=>setHoveredBuilding(null)}
 
 <div
 onClick={()=>handleBuildingClick(building)}
-className={`relative w-full h-full rounded-xl border-2 backdrop-blur-sm transition cursor-pointer
-${colors.border}
-${colors.bg}`}
+className="w-9 h-9 rounded-full bg-slate-900 border border-white flex items-center justify-center text-xs font-bold shadow-lg cursor-pointer hover:scale-110 transition"
 >
 
-<div className={`absolute -top-2 -left-2 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white ${colors.badge}`}>
-{building.number}
-</div>
-
-{building.isSustainability && (
-<div className="absolute bottom-1 right-1 text-green-400 text-xs">
-🌱
-</div>
+{building.icon ? (
+<img src={building.icon} className="w-5 h-5"/>
+) : (
+building.number
 )}
 
 </div>
@@ -238,8 +252,7 @@ ${colors.bg}`}
 
 </div>
 
-
-{/* FLOATING PREVIEW CARD */}
+{/* HOVER CARD */}
 
 {hoveredBuilding && (
 
@@ -251,28 +264,35 @@ top: mousePosition.y + 20
 }}
 >
 
+<div className="p-3 flex items-center gap-2">
+
+{hoveredBuilding.icon && (
+<img
+src={hoveredBuilding.icon}
+className="w-8 h-8"
+/>
+)}
+
+<div>
+
+<div className="font-semibold text-sm">
+{hoveredBuilding.name}
+</div>
+
+{hoveredBuilding.number && (
+<div className="text-xs text-slate-400">
+Building {hoveredBuilding.number}
+</div>
+)}
+
+</div>
+
+</div>
+
 <img
 src={hoveredBuilding.image}
 className="w-full h-32 object-cover"
 />
-
-<div className="p-3">
-
-<div className="font-semibold text-sm flex items-center gap-2">
-
-{hoveredBuilding.isSustainability && (
-<span className="text-green-400">🌱</span>
-)}
-
-{hoveredBuilding.name}
-
-</div>
-
-<div className="text-xs text-slate-400 mt-1">
-Building {hoveredBuilding.number}
-</div>
-
-</div>
 
 </div>
 
