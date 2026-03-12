@@ -286,6 +286,11 @@ Building {hoveredBuilding.number}
 )}
 
 </div>
+{hoveredBuilding.description && (
+  <div className="text-xs text-slate-400 whitespace-pre-line mt-1">
+    {hoveredBuilding.description}
+  </div>
+)}
 
 </div>
 

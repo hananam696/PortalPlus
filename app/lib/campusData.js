@@ -227,7 +227,7 @@ number:"06",
 name:"Campus Clinic",
 shortName:"Clinic",
 image:"/campus/clinic.jpg",
-icon:"/icons/clinic.svg",
+icon:"/icons/food.jpg",
 category:"clinic",
 coordinates:{top:55,left:40,width:9,height:11},
 color:"rose"
@@ -239,7 +239,7 @@ number:"",
 name:"Caribou Coffee",
 shortName:"Caribou",
 image:"/campus/caribou.jpg",
-icon:"/icons/coffee.svg",
+icon:"/icons/food.jpg",
 category:"dining",
 coordinates:{top:40,left:70,width:6,height:6},
 color:"orange"
@@ -248,7 +248,7 @@ color:"orange"
 {
 id:"timhortons",
 name:"Tim Hortons",
-icon:"/icons/coffee.svg",
+icon:"/icons/food.jpg",
 image:"/campus/timhortons.jpg",
 category:"dining",
 coordinates:{top:41.08,left:41.71},
@@ -273,7 +273,7 @@ number:"",
 name:"Hot N Cool",
 shortName:"Hot N Cool",
 image:"/campus/hotncool.jpg",
-icon:"/icons/food.svg",
+icon:"/icons/food.jpg",
 category:"dining",
 coordinates:{top:58,left:42,width:6,height:6},
 color:"orange"
@@ -291,8 +291,12 @@ color:"orange"
 id:"metro",
 name:"Metro Link",
 shortName:"Metro",
-icon:"/icons/metro.svg",
-image:"/campus/metro.jpg",
+description:`Route: Metrolink M148
+Landmark: Opposite the Multipurpose Hall
+Location: Stop A24 near Parking C10 (next to Cup of Joe)
+Cost: Free`,
+icon:"/icons/metro.jpg",
+image:"/campus/metro.png",
 category:"metro",
 coordinates:{top:25.60,left:47.89},
 color:"blue"
