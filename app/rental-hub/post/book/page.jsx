@@ -51,16 +51,43 @@ export default function PostBookPage() {
     coverUrl ||
     "";
 
-  function handleSubmit(e) {
-    e.preventDefault();
+async function handleSubmit(e) {
+  e.preventDefault();
 
-    if (!title || !author || !course || !rentPrice || !location) {
-      alert("Please fill in all required fields.");
-      return;
-    }
+  if (!title || !author || !course || !rentPrice || !location) {
+    alert("Please fill in all required fields.");
+    return;
+  }
 
+  const listing = {
+    type: "book",
+    title,
+    author,
+    course,
+    condition,
+    rentPrice,
+    buyPrice,
+    location,
+    description,
+    image: coverUrl,
+    createdAt: new Date(),
+  };
+
+  const res = await fetch("/api/listings", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(listing),
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
     setSubmitted(true);
   }
+}
+
 
   function clearUpload() {
     setCoverFile(null);

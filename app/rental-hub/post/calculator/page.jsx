@@ -45,16 +45,42 @@ export default function PostCalculatorPage() {
     photoUrl ||
     "https://images.unsplash.com/photo-1629019239278-7bda9a8e3f2d?w=900&auto=format&fit=crop&q=60";
 
-  function handleSubmit(e) {
-    e.preventDefault();
+async function handleSubmit(e) {
+  e.preventDefault();
 
-    if (!model || !rentPrice || !location) {
-      alert("Please fill in all required fields.");
-      return;
-    }
+  if (!model || !rentPrice || !location) {
+    alert("Please fill in all required fields.");
+    return;
+  }
 
+  const listing = {
+    type: "calculator",
+    brand,
+    model,
+    condition,
+    rentPrice,
+    deposit,
+    location,
+    notes,
+    image: photoUrl,
+    createdAt: new Date(),
+  };
+
+  const res = await fetch("/api/listings", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(listing),
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
     setSubmitted(true);
   }
+}
+
 
   function clearUpload() {
     setPhotoFile(null);
