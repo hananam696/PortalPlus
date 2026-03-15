@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   ArrowLeft,
   Calculator,
@@ -13,12 +13,29 @@ import {
   Plus,
 } from "lucide-react";
 
-import { calculatorsData } from "./data";
+
 
 export default function CalculatorsListPage() {
   const [search, setSearch] = useState("");
   const [brandFilter, setBrandFilter] = useState("All");
   const [conditionFilter, setConditionFilter] = useState("All");
+  const [calculatorsData, setCalculatorsData] = useState([]);
+
+  useEffect(() => {
+  async function fetchCalculators() {
+    const res = await fetch("/api/listings");
+    const data = await res.json();
+
+    const calculatorsOnly = data.filter(
+      (item) => item.type === "calculator"
+    );
+
+    setCalculatorsData(calculatorsOnly);
+  }
+
+  fetchCalculators();
+}, []);
+
 
   const filtered = useMemo(() => {
     return calculatorsData.filter((c) => {
