@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   ArrowLeft,
   Search,
@@ -12,7 +12,6 @@ import {
   Plus,
 } from "lucide-react";
 
-import { BOOKS } from "./data";
 
 export default function BooksListPage() {
   const [query, setQuery] = useState("");
@@ -20,9 +19,25 @@ export default function BooksListPage() {
   const [availabilityFilter, setAvailabilityFilter] = useState("All");
   const [conditionFilter, setConditionFilter] = useState("All");
 
+  const [booksData, setBooksData] = useState([]);
+
+  useEffect(() => {
+  async function fetchBooks() {
+    const res = await fetch("/api/listings");
+    const data = await res.json();
+
+    const booksOnly = data.filter((item) => item.type === "book");
+
+    setBooksData(booksOnly);
+  }
+
+  fetchBooks();
+}, []);
+
+
   // Filters based on shared data.js
   const departments = useMemo(() => {
-    const unique = Array.from(new Set(BOOKS.map((b) => b.department)));
+    const unique = Array.from(new Set(booksData.map((b) => b.course)));
     return ["All", ...unique];
   }, []);
 
@@ -30,14 +45,14 @@ export default function BooksListPage() {
   const availability = ["All", "Available", "Unavailable"];
 
   const filteredBooks = useMemo(() => {
-    return BOOKS.filter((b) => {
+    return booksData.filter((b) => {
       const matchesQuery =
         b.title.toLowerCase().includes(query.toLowerCase()) ||
         b.author.toLowerCase().includes(query.toLowerCase()) ||
-        b.department.toLowerCase().includes(query.toLowerCase());
+        b.course.toLowerCase().includes(query.toLowerCase());
 
       const matchesDepartment =
-        departmentFilter === "All" ? true : b.department === departmentFilter;
+        departmentFilter === "All" ? true : b.course === departmentFilter;
 
       const matchesCondition =
         conditionFilter === "All" ? true : b.condition === conditionFilter;
@@ -204,7 +219,7 @@ function BookCard({ book }) {
         {/* Book cover */}
         <div className="h-40 rounded-2xl border overflow-hidden mb-5">
           <img
-            src={book.cover}
+            src={book.image}
             alt={book.title}
             className="w-full h-full object-cover"
           />
