@@ -13,8 +13,6 @@ import {
   Plus,
 } from "lucide-react";
 
-
-
 export default function CalculatorsListPage() {
   const [search, setSearch] = useState("");
   const [brandFilter, setBrandFilter] = useState("All");
@@ -22,20 +20,19 @@ export default function CalculatorsListPage() {
   const [calculatorsData, setCalculatorsData] = useState([]);
 
   useEffect(() => {
-  async function fetchCalculators() {
-    const res = await fetch("/api/listings");
-    const data = await res.json();
+    async function fetchCalculators() {
+      const res = await fetch("/api/listings");
+      const data = await res.json();
 
-    const calculatorsOnly = data.filter(
-      (item) => item.type === "calculator"
-    );
+      const calculatorsOnly = data.filter(
+        (item) => item.type?.toLowerCase() === "calculator"
+      );
 
-    setCalculatorsData(calculatorsOnly);
-  }
+      setCalculatorsData(calculatorsOnly);
+    }
 
-  fetchCalculators();
-}, []);
-
+    fetchCalculators();
+  }, []);
 
   const filtered = useMemo(() => {
     return calculatorsData.filter((c) => {
@@ -43,7 +40,7 @@ export default function CalculatorsListPage() {
         (c.brand + " " + c.model)
           .toLowerCase()
           .includes(search.toLowerCase()) ||
-        c.location.toLowerCase().includes(search.toLowerCase());
+        c.location?.toLowerCase().includes(search.toLowerCase());
 
       const matchesBrand =
         brandFilter === "All" ? true : c.brand === brandFilter;
@@ -53,7 +50,7 @@ export default function CalculatorsListPage() {
 
       return matchesSearch && matchesBrand && matchesCondition;
     });
-  }, [search, brandFilter, conditionFilter]);
+  }, [search, brandFilter, conditionFilter, calculatorsData]);
 
   return (
     <div className="min-h-screen bg-slate-50 px-6 py-10">
@@ -68,7 +65,6 @@ export default function CalculatorsListPage() {
             Back to Rental Hub
           </Link>
 
-          {/* ✅ This should go DIRECTLY to the calculator post form */}
           <Link
             href="/rental-hub/post/calculator"
             className="px-5 py-3 rounded-2xl bg-blue-600 text-white font-extrabold hover:bg-blue-700 transition inline-flex items-center gap-2"
@@ -138,8 +134,8 @@ export default function CalculatorsListPage() {
         <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((c) => (
             <Link
-              key={c.id}
-              href={`/rental-hub/calculators/${c.id}`}
+              key={c._id}
+              href={`/rental-hub/calculators/${c._id}`}
               className="group bg-white rounded-3xl border shadow-sm overflow-hidden hover:shadow-md transition"
             >
               <div className="relative">
@@ -151,7 +147,7 @@ export default function CalculatorsListPage() {
 
                 <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1 rounded-full bg-white/95 border text-sm font-bold text-slate-800">
                   <Star className="w-4 h-4 text-blue-700" />
-                  {c.rating}
+                  {c.rating || "4.5"}
                 </div>
               </div>
 
@@ -161,7 +157,7 @@ export default function CalculatorsListPage() {
                     <p className="text-xs font-bold text-slate-500">
                       {c.brand}
                     </p>
-                    <h2 className="text-lg font-extrabold text-slate-900 leading-snug">
+                    <h2 className="text-lg font-extrabold text-slate-900">
                       {c.model}
                     </h2>
                   </div>
@@ -177,12 +173,12 @@ export default function CalculatorsListPage() {
                     {c.condition}
                   </span>
 
-                  <span className="px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-sm font-bold text-blue-800">
+                  <span className="px-3 py-1 rounded-full bg-blue-50 border text-sm font-bold text-blue-800">
                     {c.rentPrice} QAR / week
                   </span>
 
                   <span className="px-3 py-1 rounded-full bg-slate-100 border text-sm font-bold text-slate-800 inline-flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-slate-700" />
+                    <ShieldCheck className="w-4 h-4" />
                     Deposit: {c.deposit} QAR
                   </span>
                 </div>
@@ -192,7 +188,7 @@ export default function CalculatorsListPage() {
                   {c.location}
                 </div>
 
-                <div className="mt-5 inline-flex items-center gap-2 text-sm font-extrabold text-blue-700 group-hover:text-blue-900">
+                <div className="mt-5 inline-flex items-center gap-2 text-sm font-extrabold text-blue-700">
                   <Calculator className="w-4 h-4" />
                   View details
                 </div>
