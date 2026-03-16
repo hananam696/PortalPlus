@@ -16,6 +16,8 @@ const categoryColors = {
   parking:        { bg: "#64748b", text: "#fff" },
   services:       { bg: "#06b6d4", text: "#fff" },
   recreation:     { bg: "#a855f7", text: "#fff" },
+    training:     { bg: "#14b8a6", text: "#fff" }
+
 };
 
 function getCategoryColor(category) {
