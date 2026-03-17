@@ -1,9 +1,9 @@
 "use client";
 
-import { Filter, Leaf, Search, X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState, useRef, useEffect, Suspense } from "react";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import { Filter, Leaf, Search, X } from "lucide-react";
 import { buildings, filterCategories } from "../lib/campusData";
 
 // Color per category
@@ -16,8 +16,6 @@ const categoryColors = {
   parking:        { bg: "#64748b", text: "#fff" },
   services:       { bg: "#06b6d4", text: "#fff" },
   recreation:     { bg: "#a855f7", text: "#fff" },
-    training:     { bg: "#14b8a6", text: "#fff" }
-
 };
 
 function getCategoryColor(category) {
@@ -57,7 +55,7 @@ function BuildingPin({ building, isHighlighted }) {
   );
 }
 
-export default function CampusMapPage() {
+function CampusMapInner() {
   const router = useRouter();
 
   const [selectedFilter, setSelectedFilter] = useState("all");
@@ -68,6 +66,41 @@ export default function CampusMapPage() {
   const [highlightedId, setHighlightedId] = useState(null);
   const transformRef = useRef(null);
   const mapContainerRef = useRef(null);
+  const searchParams = useSearchParams();
+
+  // Auto-highlight + zoom when coming from a building page (?highlight=10)
+  useEffect(() => {
+    const highlightNumber = searchParams.get("highlight");
+    if (!highlightNumber) return;
+
+    const building = buildings.find((b) => b.number === highlightNumber);
+    if (!building) return;
+
+    // Small delay to let the map render first
+    const timer = setTimeout(() => {
+      setHighlightedId(building.id);
+      setTimeout(() => setHighlightedId(null), 3500);
+
+      if (transformRef.current && mapContainerRef.current) {
+        const container = mapContainerRef.current;
+        const containerW = container.offsetWidth;
+        const containerH = container.offsetHeight;
+        const pinX = (building.coordinates.left / 100) * containerW;
+        const pinY = (building.coordinates.top / 100) * containerH;
+        const zoomLevel = 2.5;
+
+        transformRef.current.setTransform(
+          containerW / 2 - pinX * zoomLevel,
+          containerH / 2 - pinY * zoomLevel,
+          zoomLevel,
+          700,
+          "easeOut"
+        );
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchParams]);
 
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
@@ -201,11 +234,9 @@ export default function CampusMapPage() {
                     const { bg } = getCategoryColor(b.category);
                     // Check if another result shares the same name (duplicate)
                     const isDuplicate = searchResults.filter((r) => r.name === b.name).length > 1;
-                    // Build a location hint using shortName or coordinates quadrant
+                    // Build a location hint: just building number or id
                     const locationHint = isDuplicate
-                      ? (b.shortName && b.shortName !== b.name
-                          ? b.shortName
-                          : `Location ${idx + 1} — ${b.coordinates.top < 50 ? "North" : "South"} ${b.coordinates.left < 50 ? "West" : "East"}`)
+                      ? (b.number ? `Building ${b.number}` : `ID: ${b.id}`)
                       : null;
                     return (
                       <button
@@ -464,5 +495,13 @@ export default function CampusMapPage() {
 
       </div>
     </>
+  );
+}
+
+export default function CampusMapPage() {
+  return (
+    <Suspense fallback={null}>
+      <CampusMapInner />
+    </Suspense>
   );
 }

@@ -1,0 +1,7 @@
+* {
+  font-family: var(--font-inter), sans-serif;
+}
+
+h1, h2.display {
+  font-family: var(--font-syne), sans-serif;
+}
