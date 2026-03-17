@@ -25,3 +25,35 @@ export async function DELETE(req, { params }) {
     return NextResponse.json({ error: "Delete failed" });
   }
 }
+
+export async function PUT(req, { params }) {
+  try {
+    console.log("PUT HIT");
+
+    const client = await clientPromise;
+    const db = client.db("portalplus");
+
+    const id = params.id;
+    console.log("Updating ID:", id);
+
+    const body = await req.json();
+
+// REMOVE fields that should NOT be updated 
+delete body._id;
+delete body.createdAt;
+delete body.type;
+    console.log("Body:", body);
+
+    const result = await db.collection("listings").updateOne(
+      { _id: new ObjectId(id) },
+      { $set: body }
+    );
+
+    console.log("Update result:", result);
+
+    return NextResponse.json({ message: "Updated successfully" });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Update failed" });
+  }
+}

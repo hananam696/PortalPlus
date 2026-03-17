@@ -106,6 +106,13 @@ export default function CalculatorDetailsPage() {
             </button>
 
             <button
+            onClick={() => window.location.href = `/rental-hub/calculators/${id}/edit`}
+            className="mt-4 bg-yellow-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-yellow-600"
+            >
+              Edit Listing
+              </button>
+
+            <button
             onClick={handleDelete}
             className="mt-4 bg-red-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-700"
             >
