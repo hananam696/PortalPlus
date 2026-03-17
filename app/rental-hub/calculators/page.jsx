@@ -134,8 +134,8 @@ export default function CalculatorsListPage() {
         <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((c) => (
             <Link
-              key={c._id}
-              href={`/rental-hub/calculators/${c._id}`}
+              key={c._id.toString()}
+              href={`/rental-hub/calculators/${c._id.toString()}`}
               className="group bg-white rounded-3xl border shadow-sm overflow-hidden hover:shadow-md transition"
             >
               <div className="relative">

@@ -14,7 +14,9 @@ export default function CalculatorDetailsPage() {
       const res = await fetch("/api/listings");
       const data = await res.json();
 
-      const found = data.find((item) => item._id === id);
+      const found = data.find(
+        (item) => item._id.toString() === id
+      );
 
       setCalculator(found);
     }
@@ -29,6 +31,17 @@ export default function CalculatorDetailsPage() {
       </div>
     );
   }
+
+  async function handleDelete() {
+  const confirmDelete = confirm("Are you sure you want to delete?");
+  if (!confirmDelete) return;
+
+  await fetch(`/api/listings/${id}`, {
+    method: "DELETE",
+  });
+
+  window.location.href = "/rental-hub/calculators";
+}
 
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-10">
@@ -91,6 +104,13 @@ export default function CalculatorDetailsPage() {
             <button className="mt-8 bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700">
               Contact Owner
             </button>
+
+            <button
+            onClick={handleDelete}
+            className="mt-4 bg-red-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-700"
+            >
+              Delete Listing
+              </button>
 
           </div>
         </div>
