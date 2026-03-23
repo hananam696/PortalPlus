@@ -1,24 +1,47 @@
 import clientPromise from "../../../utils/mongodb";
 
+// ✅ CREATE LISTING
 export async function POST(req) {
-  const body = await req.json();
+  try {
+    const body = await req.json();
 
-  const client = await clientPromise;
-  const db = client.db("portalplus");
+    const client = await clientPromise;
+    const db = client.db("portalplus");
 
-  const result = await db.collection("listings").insertOne(body);
+    // ✅ Add extra fields (IMPORTANT)
+    const newListing = {
+      ...body,
+      userEmail: "student@udst.edu", // 👈 for My Listings
+      createdAt: new Date(),
+    };
 
-  return Response.json({
-    success: true,
-    id: result.insertedId,
-  });
+    const result = await db
+      .collection("listings")
+      .insertOne(newListing);
+
+    return Response.json({
+      success: true,
+      id: result.insertedId,
+    });
+  } catch (error) {
+    return Response.json({ success: false, error: error.message });
+  }
 }
 
+// ✅ GET ALL LISTINGS
 export async function GET() {
-  const client = await clientPromise;
-  const db = client.db("portalplus");
+  try {
+    const client = await clientPromise;
+    const db = client.db("portalplus");
 
-  const listings = await db.collection("listings").find({}).toArray();
+    const listings = await db
+      .collection("listings")
+      .find({})
+      .sort({ createdAt: -1 }) // 👈 newest first
+      .toArray();
 
-  return Response.json(listings);
+    return Response.json(listings);
+  } catch (error) {
+    return Response.json({ success: false, error: error.message });
+  }
 }
