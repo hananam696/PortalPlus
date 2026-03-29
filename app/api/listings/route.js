@@ -1,4 +1,5 @@
 import clientPromise from "../../../utils/mongodb";
+import { ObjectId } from "mongodb";
 
 // ✅ CREATE LISTING
 export async function POST(req) {
@@ -8,16 +9,13 @@ export async function POST(req) {
     const client = await clientPromise;
     const db = client.db("portalplus");
 
-    // ✅ Add extra fields (IMPORTANT)
     const newListing = {
       ...body,
-      userEmail: "student@udst.edu", // 👈 for My Listings
+      userEmail: "student@udst.edu", // later from login
       createdAt: new Date(),
     };
 
-    const result = await db
-      .collection("listings")
-      .insertOne(newListing);
+    const result = await db.collection("listings").insertOne(newListing);
 
     return Response.json({
       success: true,
@@ -37,10 +35,53 @@ export async function GET() {
     const listings = await db
       .collection("listings")
       .find({})
-      .sort({ createdAt: -1 }) // 👈 newest first
+      .sort({ createdAt: -1 })
       .toArray();
 
-    return Response.json(listings);
+    // 🔥 FIX: convert _id to string
+    const formatted = listings.map((item) => ({
+      ...item,
+      _id: item._id.toString(),
+    }));
+
+    return Response.json(formatted);
+  } catch (error) {
+    return Response.json({ success: false, error: error.message });
+  }
+}
+
+// ✅ DELETE LISTING
+export async function DELETE(req) {
+  try {
+    const { id } = await req.json();
+
+    const client = await clientPromise;
+    const db = client.db("portalplus");
+
+    await db.collection("listings").deleteOne({
+      _id: new ObjectId(id),
+    });
+
+    return Response.json({ success: true });
+  } catch (error) {
+    return Response.json({ success: false, error: error.message });
+  }
+}
+
+// ✅ UPDATE LISTING
+export async function PUT(req) {
+  try {
+    const { id, updatedData } = await req.json();
+
+    const client = await clientPromise;
+    const db = client.db("portalplus");
+
+    await db.collection("listings").updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updatedData }
+    );
+
+    return Response.json({ success: true });
   } catch (error) {
     return Response.json({ success: false, error: error.message });
   }

@@ -59,6 +59,7 @@ async function handleSubmit(e) {
     return;
   }
 
+  const user = JSON.parse(localStorage.getItem("user"));
   const listing = {
     type: "book",
     title,
@@ -70,6 +71,7 @@ async function handleSubmit(e) {
     location,
     description,
     image: coverUrl,
+    userEmail: user?.email,
     createdAt: new Date(),
   };
 
