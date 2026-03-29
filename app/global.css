@@ -5,3 +5,104 @@
 h1, h2.display {
   font-family: var(--font-syne), sans-serif;
 }
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeUp 0.8s ease forwards;
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.robot-container {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.robot-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+  filter: blur(20px);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-pop {
+  animation: pop 0.5s ease forwards;
+}
+/* CONFETTI CONTAINER */
+.confetti-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible; /* IMPORTANT */
+}
+
+/* PARTICLES */
+.confetti {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+
+  opacity: 0;
+
+  /* 💥 explosion animation */
+  animation: explode 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* COLORS */
+.confetti:nth-child(1n) { background: #22d3ee; }  /* cyan */
+.confetti:nth-child(2n) { background: #a78bfa; }  /* violet */
+.confetti:nth-child(3n) { background: #facc15; }  /* yellow */
+.confetti:nth-child(4n) { background: #4ade80; }  /* green */
+.confetti:nth-child(5n) { background: #fb7185; }  /* pink */
+
+/* 💥 BOOM ANIMATION */
+@keyframes explode {
+  0% {
+    transform: translate(-50%, -50%) scale(0.2) rotate(0deg);
+    opacity: 1;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(
+      calc(-50% + var(--x)),
+      calc(-50% + var(--y))
+    )
+    rotate(720deg)
+    scale(1);
+
+    opacity: 0;
+  }
+}
