@@ -2,25 +2,25 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { 
-  Leaf, 
-  Home, 
-  Map, 
-  FileText, 
-  User, 
-  LogOut, 
-  Menu, 
-  X, 
+import {
+  Leaf,
+  Home,
+  Map,
+  FileText,
+  User,
+  LogOut,
+  Menu,
+  X,
   Info,
   Settings,
   MessageCircle
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
-export default function Navbar() {
+export default function Navbar({ onOpenChat }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Replace with actual auth state
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
+
   // Demo user (replace with actual user data from Firebase)
   const user = {
     name: "Rabiya Ishaq",
@@ -31,7 +31,7 @@ export default function Navbar() {
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-        
+
         {/* LOGO */}
         <Link href="/" className="flex items-center gap-2 sm:gap-3">
           <div className="relative w-8 h-8 sm:w-10 sm:h-10">
@@ -59,13 +59,13 @@ export default function Navbar() {
         {/* RIGHT SECTION */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* AI CHAT BUTTON - Desktop */}
-          <Link
-            href="#"  // Keep as # for now, will be replaced with actual AI chat link
+          <button
+            onClick={onOpenChat}
             className="hidden md:flex items-center gap-2 bg-emerald-600 text-white px-3 lg:px-4 py-2 rounded-full hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md"
           >
             <MessageCircle size={18} />
             <span className="font-medium text-sm lg:text-base">AI Assistant</span>
-          </Link>
+          </button>
 
           {/* AUTH SECTION */}
           {isLoggedIn ? (
@@ -125,15 +125,15 @@ export default function Navbar() {
             <MobileNavItem icon={<Map size={18} />} label="Campus Map" link="/campus-map" />
             <MobileNavItem icon={<FileText size={18} />} label="Certificates" link="/certificates" />
             <MobileNavItem icon={<Info size={18} />} label="About" link="/about" />
-            
+
             {/* Mobile AI Assistant */}
-            <Link
-              href="#"  // Keep as # for now, will be replaced with actual AI chat link
-              className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-emerald-50 rounded-xl transition-colors"
+            <button
+              onClick={() => { onOpenChat(); setIsMenuOpen(false); }}
+              className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-emerald-50 rounded-xl transition-colors"
             >
               <MessageCircle size={18} className="text-emerald-600" />
               <span className="font-medium">AI Assistant</span>
-            </Link>
+            </button>
 
             {/* Mobile Auth Section */}
             {isLoggedIn ? (

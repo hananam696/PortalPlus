@@ -1,14 +1,14 @@
 import "./globals.css";
 import Navbar from "../components/Navbar";
-import Chatbot from "../components/Chatbot";
+import ChatWrapper from "../components/ChatWrapper";
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="bg-white-50">
-        <Navbar />
-        {children}
-        <Chatbot />
+        <ChatWrapper>
+          {children}
+        </ChatWrapper>
       </body>
     </html>
   );

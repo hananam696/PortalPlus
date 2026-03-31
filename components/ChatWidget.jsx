@@ -1,0 +1,348 @@
+"use client";
+
+// ─────────────────────────────────────────────────────────────
+// ChatWidget.jsx — Master-level sustainability chatbot for PortalPlus
+// ─────────────────────────────────────────────────────────────
+
+import { AnimatePresence, motion } from "framer-motion";
+import { Leaf, Loader2, RefreshCw, Send, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+
+
+// ── QUICK ACTIONS ─────────────────────────────────────────────
+const QUICK_ACTIONS = [
+  { label: "💡 Daily Tip", mode: "tip", text: "Give me today's eco tip!" },
+  { label: "🧮 My Footprint", mode: "footprint", text: "Help me estimate my carbon footprint." },
+  { label: "🌍 Quiz Me", mode: "quiz", text: "Quiz me on sustainability!" },
+  { label: "♻️ Campus Life", mode: null, text: "What are the best sustainability tips for campus life?" },
+  { label: "🌊 Water Saving", mode: null, text: "How can I save water as a university student?" },
+  { label: "⚡ Energy Tips", mode: null, text: "How do I reduce my energy use in my dorm?" },
+  { label: "🛍️ Ethical Shopping", mode: null, text: "How do I shop more ethically and sustainably?" },
+  { label: "🚲 Green Commute", mode: null, text: "What's the most eco-friendly way to commute to university?" },
+];
+
+// ── FOLLOW-UP CHIPS per response type ────────────────────────
+const FOLLOW_UPS = {
+  tip: ["Give me another tip 💡", "Why does this matter? 🌍", "What's the impact? 📊"],
+  footprint: ["How do I reduce this? 🌱", "Compare to average 📊", "Biggest impact area? 🔍"],
+  quiz: ["Quiz me again! 🎯", "Explain that answer 📚", "Harder question 🧠"],
+  general: ["Tell me more 📖", "Give me a practical tip 💡", "Campus angle? 🎓"],
+};
+
+// ── WELCOME MESSAGE ───────────────────────────────────────────
+const WELCOME_MSG = {
+  role: "assistant",
+  content: "Hey! I'm **Sage** 🌿 — your sustainability guide on PortalPlus.\n\nI can give you daily eco tips, estimate your carbon footprint, quiz you on green topics, and answer any sustainability questions.\n\nPick a quick action above or ask me anything!",
+  followUps: [],
+  id: "welcome",
+};
+
+// ── DETECT RESPONSE TYPE ─────────────────────────────────────
+function detectResponseType(text) {
+  const t = text.toLowerCase();
+  if (t.includes("tip") || t.includes("try ") || t.includes("switch to")) return "tip";
+  if (t.includes("co₂") || t.includes("footprint") || t.includes("kg")) return "footprint";
+  if (t.includes("question") || t.includes("correct answer") || t.includes("option")) return "quiz";
+  return "general";
+}
+
+// ── FORMAT MESSAGE ────────────────────────────────────────────
+function formatMessage(text) {
+  text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  text = text.replace(/^[-•] (.+)$/gm, "<li>$1</li>");
+  text = text.replace(/(<li>[\s\S]*?<\/li>)+/, (m) => `<ul class="list-disc list-inside space-y-1 mt-2 mb-1">${m}</ul>`);
+  text = text.replace(/\n/g, "<br/>");
+  return text;
+}
+
+// ── GIBBERISH DETECTION ───────────────────────────────────────
+function isGibberish(text) {
+  const t = text.trim();
+  if (t.length < 2) return true;
+  // Too short to be meaningful
+  if (t.length < 4 && !/\s/.test(t)) return true;
+  const words = t.split(/\s+/);
+  const gibWords = words.filter(w => {
+    if (w.length <= 2) return false;
+    const hasVowel = /[aeiou]/i.test(w);
+    const hasRepeats = /(.)\1{2,}/.test(w);
+    return !hasVowel || hasRepeats;
+  });
+  return gibWords.length / words.length >= 0.5;
+}
+
+// ── VARIED REDIRECTS ──────────────────────────────────────────
+const REDIRECTS = [
+  "I'm all about sustainability 🌿 — try asking me for an eco tip or a campus green hack!",
+  "That's outside my green zone! 🍃 Ask me about your carbon footprint or eco-friendly campus life.",
+  "Oops, I only speak sustainability 🌱 — want a daily tip or a quick quiz instead?",
+  "I'm Sage, your eco guide — not quite my area! Want to explore your carbon footprint? 🌍",
+  "Green topics only for me! 🌿 Try: 'Quiz me' or 'Give me a campus tip'.",
+];
+let redirectIdx = 0;
+function getRedirect() {
+  return REDIRECTS[redirectIdx++ % REDIRECTS.length];
+}
+
+// ─────────────────────────────────────────────────────────────
+export default function ChatWidget({ onOpenChange, externalOpen }) {
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState([WELCOME_MSG]);
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => { if (externalOpen) setOpen(true); }, [externalOpen]);
+  useEffect(() => { onOpenChange?.(open); }, [open, onOpenChange]);
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  const focusInput = useCallback(() => {
+    setTimeout(() => inputRef.current?.focus(), 60);
+  }, []);
+
+  useEffect(() => { if (open) focusInput(); }, [open, focusInput]);
+  useEffect(() => { if (!loading && open) focusInput(); }, [loading, open, focusInput]);
+
+  const buildHistory = () =>
+    messages
+      .filter(m => m.id !== "welcome")
+      .map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.content }));
+
+  async function sendMessage(text, mode = null) {
+    const trimmed = text.trim();
+    if (!trimmed || loading) return;
+
+    // Gibberish guard
+    if (isGibberish(trimmed)) {
+      setMessages(prev => [
+        ...prev,
+        { role: "user", content: trimmed, id: Date.now(), followUps: [] },
+        { role: "assistant", content: "Didn't quite catch that! Ask me something green 🌿", id: Date.now() + 1, followUps: [] },
+      ]);
+      setInput("");
+      focusInput();
+      return;
+    }
+
+    setMessages(prev => [...prev, { role: "user", content: trimmed, id: Date.now(), followUps: [] }]);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: trimmed, history: buildHistory(), mode }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        const err =
+          res.status === 401 ? "⚠️ API key issue — please contact the admin."
+            : res.status === 429 ? "⚠️ Too many requests! Give me a moment and try again."
+              : res.status >= 500 ? "⚠️ Server hiccup — try again in a few seconds."
+                : `⚠️ Something went wrong (${res.status}).`;
+        throw new Error(err);
+      }
+
+      const type = mode || detectResponseType(data.answer);
+      const followUps = FOLLOW_UPS[type] || FOLLOW_UPS.general;
+
+      setMessages(prev => [...prev, {
+        role: "assistant", content: data.answer, followUps, id: Date.now(),
+      }]);
+    } catch (err) {
+      setMessages(prev => [...prev, {
+        role: "assistant", content: err.message, followUps: [], id: Date.now(), isError: true,
+      }]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
+  }
+
+  function resetChat() {
+    setMessages([WELCOME_MSG]);
+    setInput("");
+    focusInput();
+  }
+
+  const lastBot = [...messages].reverse().find(m => m.role === "assistant");
+  const followUps = lastBot?.followUps || [];
+
+  return (
+    <>
+      {/* ── PANEL ──────────────────────────────────────────── */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            key="panel"
+            initial={{ opacity: 0, y: 20, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.96 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed bottom-24 right-5 z-50 w-[360px] sm:w-[400px] flex flex-col"
+            style={{ maxHeight: "calc(100vh - 130px)" }}
+          >
+            <div className="flex flex-col h-full rounded-2xl overflow-hidden shadow-2xl border border-emerald-100 bg-white">
+
+              {/* HEADER */}
+              <div className="flex-shrink-0 bg-gradient-to-r from-emerald-600 to-teal-600">
+                <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                      <Leaf size={16} className="text-white" />
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold text-sm leading-none">Sage</p>
+                      <p className="text-emerald-100 text-xs mt-0.5">Sustainability Guide</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button onClick={resetChat} className="flex items-center gap-1 text-white/70 hover:text-white text-xs px-2 py-1.5 rounded-lg hover:bg-white/10 transition-colors">
+                      <RefreshCw size={11} /><span>Reset</span>
+                    </button>
+                    <button onClick={() => setOpen(false)} className="text-white/70 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+                      <X size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quick actions — always visible, horizontally scrollable */}
+                <div className="flex gap-2 px-3 pb-3 overflow-x-auto scrollbar-none">
+                  {QUICK_ACTIONS.map(a => (
+                    <button
+                      key={a.label}
+                      onClick={() => sendMessage(a.text, a.mode)}
+                      disabled={loading}
+                      className="flex-shrink-0 text-xs px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/20 hover:border-white/40 transition-all font-medium disabled:opacity-40 whitespace-nowrap"
+                    >
+                      {a.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* MESSAGES */}
+              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gray-50/50 min-h-0">
+                {messages.map(msg => (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.18 }}
+                    className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    {msg.role === "assistant" && (
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center flex-shrink-0 mt-0.5 mr-2 shadow-sm">
+                        <Leaf size={11} className="text-white" />
+                      </div>
+                    )}
+                    <div
+                      className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${msg.role === "user"
+                          ? "bg-emerald-600 text-white rounded-br-sm"
+                          : msg.isError
+                            ? "bg-red-50 text-red-700 border border-red-200 rounded-bl-sm"
+                            : "bg-white text-gray-800 rounded-bl-sm shadow-sm border border-gray-100"
+                        }`}
+                      dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }}
+                    />
+                  </motion.div>
+                ))}
+
+                {/* Typing dots */}
+                {loading && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end gap-2">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center flex-shrink-0">
+                      <Leaf size={11} className="text-white" />
+                    </div>
+                    <div className="bg-white border border-gray-100 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+                      <div className="flex gap-1">
+                        <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:0ms]" />
+                        <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:150ms]" />
+                        <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+                <div ref={bottomRef} />
+              </div>
+
+              {/* FOLLOW-UPS + INPUT */}
+              <div className="flex-shrink-0 bg-white border-t border-gray-100">
+                <AnimatePresence>
+                  {followUps.length > 0 && !loading && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="flex gap-2 px-3 pt-2.5 pb-1 overflow-x-auto scrollbar-none"
+                    >
+                      {followUps.map(fu => (
+                        <button
+                          key={fu}
+                          onClick={() => sendMessage(fu)}
+                          className="flex-shrink-0 text-xs px-3 py-1.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300 transition-all font-medium whitespace-nowrap"
+                        >
+                          {fu}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="px-3 py-3">
+                  <div className="flex items-center gap-2 bg-gray-50 rounded-xl border border-gray-200 focus-within:border-emerald-300 focus-within:ring-2 focus-within:ring-emerald-100 transition-all px-3 py-2">
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={input}
+                      onChange={e => setInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Ask Sage anything green..."
+                      disabled={loading}
+                      className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 outline-none disabled:opacity-50"
+                    />
+                    <button
+                      onClick={() => sendMessage(input)}
+                      disabled={!input.trim() || loading}
+                      className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center text-white disabled:opacity-40 hover:bg-emerald-700 active:scale-95 transition-all flex-shrink-0"
+                    >
+                      {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                    </button>
+                  </div>
+                  <p className="text-center text-[10px] text-gray-400 mt-1.5">Powered by PortalPlus 🌿</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── BUBBLE ───────────────────────────────────────────── */}
+      <motion.button
+        onClick={() => setOpen(p => !p)}
+        className="fixed bottom-5 right-5 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center text-white"
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.94 }}
+        aria-label="Open Sage"
+      >
+        <AnimatePresence mode="wait">
+          {open
+            ? <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}><X size={22} /></motion.span>
+            : <motion.span key="leaf" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}><Leaf size={22} /></motion.span>
+          }
+        </AnimatePresence>
+      </motion.button>
+
+      {!open && <span className="fixed bottom-5 right-5 z-40 w-14 h-14 rounded-full bg-emerald-400/30 animate-ping pointer-events-none" />}
+    </>
+  );
+}
