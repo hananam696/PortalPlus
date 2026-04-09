@@ -86,7 +86,7 @@ export default function HuaweiLabPage() {
   const projects = {
     ewaste: {
       name: "E-Waste Awareness in CCIT",
-      image: "/campus/huawei-ewaste.jpg",
+      image: "/campus/huawei-ewaste.png",
       link: "https://www.itu.int/en/ITU-D/Environment/Pages/Spotlight/Global-Ewaste-Monitor-2020.aspx",
       badge: "♻️ E-Waste Scout",
       content: `The IT and computing sector is one of the fastest-growing sources of electronic waste globally. Every device — server, switch, workstation — has a life cycle that must be managed responsibly.
@@ -97,7 +97,7 @@ Students learn that responsible e-waste management — through certified recycli
     },
     greenIT: {
       name: "Green IT & Energy Efficiency",
-      image: "/campus/huawei-green.jpg",
+      image: "/campus/huawei-green.png",
       link: "https://www.huawei.com/en/sustainability",
       badge: "⚡ Green IT Champion",
       content: `Data centres and network infrastructure account for significant global energy consumption. Huawei, as UDST's partner in the AI ICT Academy Lab, has committed to sustainable ICT — prioritising energy-efficient hardware, renewable-powered data centres, and low-carbon network design.
@@ -106,7 +106,7 @@ Through the UDST–Huawei lab, students gain hands-on skills in cloud computing 
     },
     seeds: {
       name: "Seeds for the Future — UDST",
-      image: "/campus/huawei-seeds.jpg",
+      image: "/campus/huawei-seeds.png",
       link: "https://www.gulf-times.com/article/677487/qatar/huawei-ai-ict-academy-lab-opens-at-udst",
       badge: "🌱 Future Leader",
       content: `UDST students excelled in Huawei's "Seeds for the Future" Corporate Social Responsibility programme, securing 3rd place in the Middle East and Central Asia region in 2023 — earning a digital tour to China.
@@ -117,7 +117,7 @@ It reflects the lab's broader mission: not just technical skills, but purpose-dr
     },
     certifications: {
       name: "Huawei HCIA / HCIP Certifications",
-      image: "/campus/huawei-cert.jpg",
+      image: "/campus/huawei-cert.png",
       link: "https://www.udst.edu.qa/about-udst/media/news/university-doha-science-and-technology-signs-mou-huawei",
       badge: "🎓 Certified Practitioner",
       content: `Through the UDST–Huawei MoU (signed October 2022), Huawei certification courses — including HCIA (Huawei Certified ICT Associate) and HCIP (Huawei Certified ICT Professional) — were embedded as micro-credential courses within UDST's curriculum.
@@ -574,7 +574,7 @@ Certified ICT professionals are better equipped to design energy-efficient netwo
         <div style={{ transform: `translate(${mouse.x}px, ${mouse.y}px)`, transition: "transform 0.1s ease-out" }}>
           <div className="robot-container animate-float drop-shadow-[0_0_30px_rgba(239,68,68,0.3)]">
             <div className="robot-glow" />
-            <img src="/campus/robot.png" style={{ width: "80%", height: "75%", objectFit: "contain" }} alt="robot" />
+            <img src="/campus/huawei.png" style={{ width: "80%", height: "75%", objectFit: "contain" }} alt="robot" />
           </div>
         </div>
       </div>

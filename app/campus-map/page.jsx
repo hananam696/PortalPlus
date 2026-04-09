@@ -191,7 +191,7 @@ function CampusMapInner() {
 
             <div className="flex-1">
               <h1 className="text-5xl font-black bg-gradient-to-r from-white via-emerald-200 to-white bg-clip-text text-transparent">
-                Interactive Campus Map
+                Campus Map
               </h1>
               <p className="mt-3 text-slate-300 text-lg max-w-2xl">
                 Drag to move the map, zoom in/out, and hover markers to explore campus locations.

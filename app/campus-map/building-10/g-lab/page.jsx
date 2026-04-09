@@ -85,7 +85,7 @@ export default function GLabPage() {
   const projects = {
     vertexai: {
       name: "Vertex AI & Sustainable Modelling",
-      image: "/campus/glab-vertexai.jpg",
+      image: "/campus/glab-vertexai.png",
       link: "https://www.udst.edu.qa/news/glab",
       badge: "🤖 AI Sustainability Researcher",
       content: `G-Lab gives UDST researchers access to Vertex AI — Google Cloud's world-class platform for building and deploying AI models — without the need for energy-intensive physical GPU clusters on campus.
@@ -96,7 +96,7 @@ Researchers can model environmental scenarios, analyse climate data, and develop
     },
     bigquery: {
       name: "BigQuery — Data-Driven Sustainability",
-      image: "/campus/glab-bigquery.jpg",
+      image: "/campus/glab-bigquery.png",
       link: "https://www.udst.edu.qa/news/glab",
       badge: "📊 Data for Good Analyst",
       content: `According to UDST's official G-Lab announcement, BigQuery and Google Cloud's AI tools "enable researchers at UDST to analyse vast datasets, uncover patterns, and accelerate ground-breaking discoveries."
@@ -107,7 +107,7 @@ This eliminates the need to purchase and maintain large physical data storage in
     },
     scalable: {
       name: "Scalable Cloud vs Physical Servers",
-      image: "/campus/glab-cloud.jpg",
+      image: "/campus/glab-cloud.png",
       link: "https://www.udst.edu.qa/news/glab",
       badge: "☁️ Green Cloud Advocate",
       content: `UDST chose Google Cloud for G-Lab explicitly because of its "scalability and flexibility" — the ability to scale computing resources up and down on demand rather than maintaining idle, energy-wasting physical servers year-round.
@@ -118,7 +118,7 @@ Students trained on G-Lab learn to design cloud-native applications with sustain
     },
     rad: {
       name: "RAD Lab — Digital-First Prototyping",
-      image: "/campus/glab-rad.jpg",
+      image: "/campus/glab-rad.png",
       link: "https://www.udst.edu.qa/news/glab",
       badge: "🚀 Circular Innovator",
       content: `G-Lab's RAD Lab access connects UDST researchers directly with Google Cloud's world-class engineers to rapidly prototype and experiment — testing and validating ideas in a virtual environment before any physical materials are used.
@@ -207,7 +207,7 @@ It also accelerates the development of sustainability-focused solutions by short
         {/* ── HERO ── */}
         <div className="relative h-[60vh] min-h-[480px] w-full flex items-end">
           <img
-            src="/campus/buildings/labs/glab.jpg"
+            src="/campus/buildings/labs/glab.jpeg"
             className="absolute inset-0 w-full h-full object-cover"
             alt="UDST G-Lab"
           />
@@ -577,7 +577,7 @@ It also accelerates the development of sustainability-focused solutions by short
         <div style={{ transform: `translate(${mouse.x}px, ${mouse.y}px)`, transition: "transform 0.1s ease-out" }}>
           <div className="robot-container animate-float drop-shadow-[0_0_30px_rgba(59,130,246,0.3)]">
             <div className="robot-glow" />
-            <img src="/campus/robot.png" style={{ width: "80%", height: "75%", objectFit: "contain" }} alt="robot" />
+            <img src="/campus/google.png" style={{ width: "80%", height: "75%", objectFit: "contain" }} alt="robot" />
           </div>
         </div>
       </div>

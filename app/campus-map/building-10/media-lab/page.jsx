@@ -57,7 +57,7 @@ export default function MediaLabPage() {
   const projects = {
     campaign: {
       name: "Digital Campaigns & Storytelling",
-      image: "/campus/media-campaign.jpg",
+      image: "/campus/media-campaign.png",
       tag: "Student Skill Area",
       content: `The B.Sc. DCMP programme trains students in content creation, visual design, and digital communication — skills essential for producing sustainability campaigns.
 
@@ -68,7 +68,7 @@ Note: This is not a specific named research project at UDST. It reflects the con
     },
     green: {
       name: "Virtual Production & Green Screen",
-      image: "/campus/media-green.jpg",
+      image: "/campus/media-green.png",
       tag: "Student Skill Area",
       content: `Virtual production using green screen is a technique students can develop through the DCMP programme's audio and video production modules.
 
@@ -79,7 +79,7 @@ Note: This reflects a general industry practice aligned with sustainability. It 
     },
     distribution: {
       name: "Responsible Digital Distribution",
-      image: "/campus/media-vr.jpg",
+      image: "/campus/media-vr.png",
       tag: "Student Skill Area",
       content: `DCMP graduates develop skills in channel development and content distribution — understanding how and where to share media. This includes awareness of the environmental impact of digital infrastructure.
 
@@ -90,7 +90,7 @@ Note: This skill area is grounded in the DCMP programme curriculum and is not a 
     },
     archive: {
       name: "Digital Content Organisation",
-      image: "/campus/media-archive.jpg",
+      image: "/campus/media-archive.png",
       tag: "Student Skill Area",
       content: `The DCMP programme covers content organisation and assessment — skills that underpin responsible digital archiving. Storing media digitally reduces the need for physical materials, contributing to a lower environmental footprint.
 

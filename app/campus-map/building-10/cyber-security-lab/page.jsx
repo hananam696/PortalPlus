@@ -52,7 +52,7 @@ export default function CyberPage() {
   const topics = {
     iot: {
       name: "Smart Cities & IoT Security",
-      image: "/campus/cyber-lab.png",
+      image: "/campus/smart-city.png",
       link: "https://manara.qnl.qa/articles/journal_contribution/A_Comparative_Analysis_on_Blockchain_versus_Centralized_Authentication_Architectures_for_IoT-Enabled_Smart_Devices_in_Smart_Cities_A_Comprehensive_Review_Recent_Advances_and_Future_Research_Directions/24717525?file=43822422",
       content: `Modern smart cities rely on connected IoT devices to manage water, waste, and transportation.
 
@@ -60,7 +60,7 @@ Cybersecurity ensures these systems operate reliably and support sustainable res
     },
     agriculture: {
       name: "Smart Agriculture & Food Security",
-      image: "/campus/cyber-agri.jpg",
+      image: "/campus/cyber-agri.png",
       link: "https://wfcc2025.udst.edu.qa/coe-fss",
       content: `Smart agriculture uses sensors and automation.
 
@@ -68,7 +68,7 @@ Cybersecurity protects these systems from disruption and supports sustainable fo
     },
     healthcare: {
       name: "Healthcare Systems",
-      image: "/campus/cyber-health.jpg",
+      image: "/campus/cyber-health.png",
       link: "https://wfcc2025.udst.edu.qa/coe-fss",
       content: `Healthcare depends on secure digital infrastructure.
 
@@ -76,7 +76,7 @@ Cybersecurity protects patient data and ensures uninterrupted medical services.`
     },
     tech: {
       name: "Sustainable Technology",
-      image: "/campus/cyber-tech.jpg",
+      image: "/campus/sustainability-cyber.png",
       link: "https://wfcc2025.udst.edu.qa/coe-fss",
       content: `Cybersecurity supports sustainable technologies by ensuring long-term reliability and efficiency.`,
     },
@@ -166,7 +166,7 @@ Cybersecurity protects patient data and ensures uninterrupted medical services.`
         {/* ── HERO ── */}
         <div className="relative h-[60vh] min-h-[500px] w-full flex items-end">
           <img
-            src="/campus/buildings/labs/cybersecurity.jpg"
+            src="/campus/buildings/labs/cybersecurity.png"
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/60 to-transparent mix-blend-multiply" />
