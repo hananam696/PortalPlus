@@ -2,13 +2,12 @@
 
 "use client";
 
-import { BookOpen } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, FileText, Home, Map, TrendingUp, X, Send, RotateCcw } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, BookOpen, FileText, Home, Map, RotateCcw, Send, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
 import SearchBar from "../components/SearchBar";
-import { useState, useRef, useEffect, useCallback } from "react";
 
 // ─────────────────────────────────────────────────────────────
 // SAGE CHATBOT — Constants & Helpers
@@ -417,6 +416,21 @@ export default function HomePage() {
             />
           </motion.div>
 
+          {/* About Us link below logo */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="text-center -mt-4"
+          >
+            <p className="text-sm text-gray-500">
+              Want to know more about us?{" "}
+              <Link href="/about" className="text-emerald-600 hover:text-emerald-700 underline underline-offset-2 font-medium transition-colors">
+                Visit our About Us page
+              </Link>
+            </p>
+          </motion.div>
+
           <div className="space-y-4">
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-emerald-900 to-gray-900">
@@ -430,9 +444,6 @@ export default function HomePage() {
               transition={{ delay: 1.0, duration: 0.6 }}
               className="mb-16 text-center"
             >
-              <h2 className="text-xl sm:text-2xl font-medium text-gray-800 mb-2 pt-4">
-                Learn and grow your sustainability awareness
-              </h2>
               <p className="text-sm text-gray-500 max-w-xl mx-auto">
                 Test your knowledge through interactive quizzes
               </p>
@@ -457,61 +468,23 @@ export default function HomePage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.6 }}
         >
-          {/* Sustainability Card */}
+          {/* ── LEARN MODULE CARD ── */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.6 }}
           >
-            <Link href="/sustainability">
-              <div className="group relative bg-gradient-to-br from-emerald-50/50 to-teal-50/30 border border-emerald-200/60 hover:border-emerald-300 rounded-2xl p-8 lg:p-10 transition-all duration-300 cursor-pointer hover:shadow-xl shadow-md overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-emerald-500 to-teal-500 rounded-l-2xl" />
-                <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                  <div className="flex-1 space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/30 group-hover:scale-105 transition-all">
-                        <TrendingUp size={26} className="text-white" strokeWidth={2} />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h2 className="text-2xl font-semibold text-gray-900">Sustainability</h2>
-                          <span className="px-2.5 py-1 text-xs font-medium text-emerald-700 bg-emerald-100 rounded-full">Featured</span>
-                        </div>
-                        <p className="text-gray-700">Track your eco-impact and earn rewards for sustainable choices</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-6 lg:gap-8">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-emerald-600 to-teal-600">15K+</div>
-                      <div className="text-xs text-gray-600 font-medium">CO₂ Saved</div>
-                    </div>
-                    <div className="w-px bg-gray-300" />
-                    <div className="text-center">
-                      <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-emerald-600 to-teal-600">1.2K+</div>
-                      <div className="text-xs text-gray-600 font-medium">Users</div>
-                    </div>
-                    <div className="w-px bg-gray-300" />
-                    <div className="text-center">
-                      <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-emerald-600 to-teal-600">850+</div>
-                      <div className="text-xs text-gray-600 font-medium">Actions</div>
-                    </div>
-                  </div>
-                  <ArrowRight className="text-gray-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all flex-shrink-0" size={24} />
-                </div>
-              </div>
-            </Link>
-          </motion.div>
+            {/* "Start here" nudge */}
+            <div className="flex items-center gap-2 mb-3 px-1">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 uppercase tracking-widest">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse inline-block" />
+                Start here — your first step
+              </span>
+              <div className="flex-1 h-px bg-emerald-100" />
+            </div>
 
-          {/* ── LEARN MODULE CARD ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.6 }}
-          >
             <Link href="/learn">
-              <div className="group relative bg-gradient-to-br from-emerald-50/60 to-teal-50/40 border border-emerald-200/60 hover:border-emerald-300 rounded-2xl p-6 transition-all duration-300 cursor-pointer hover:shadow-lg shadow-sm overflow-hidden">
+              <div className="group relative bg-gradient-to-br from-emerald-50/60 to-teal-50/40 border-2 border-emerald-300 hover:border-emerald-400 rounded-2xl p-6 transition-all duration-300 cursor-pointer hover:shadow-lg shadow-sm overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 <div className="relative flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
@@ -557,22 +530,6 @@ export default function HomePage() {
           </div>
         </motion.section>
 
-        {/* Stats */}
-        <motion.div
-          className="max-w-6xl mx-auto mt-32"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9, duration: 0.6 }}
-        >
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-100 to-transparent h-px" />
-            <div className="grid grid-cols-3 gap-16 pt-16">
-              <StatItem number="2,400+" label="Active Students" />
-              <StatItem number="850+"   label="Resources Shared" />
-              <StatItem number="15K+"   label="CO₂ Saved (kg)" />
-            </div>
-          </div>
-        </motion.div>
       </div>
 
       <SageChatbot />
@@ -598,16 +555,5 @@ function CleanCard({ href, Icon, title, description }) {
         </div>
       </div>
     </Link>
-  );
-}
-
-function StatItem({ number, label }) {
-  return (
-    <div className="text-center group cursor-default">
-      <div className="text-4xl lg:text-5xl font-semibold bg-clip-text text-transparent bg-gradient-to-br from-gray-900 to-gray-600 mb-2 tracking-tight group-hover:scale-105 transition-transform">
-        {number}
-      </div>
-      <div className="text-sm text-gray-600 font-medium">{label}</div>
-    </div>
   );
 }
