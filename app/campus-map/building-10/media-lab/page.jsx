@@ -408,7 +408,7 @@ Note: This reflects a skill area within the programme curriculum; it is not a sp
   style={{ width: "240px", height: "240px" }}
 >
                <div className="robot-glow" />
-              <img src="/campus/camera.png" style={{ width: "80%", height: "75%", objectFit: "contain" }} alt="robot" />
+              <img src="/campus/studio.png" style={{ width: "80%", height: "75%", objectFit: "contain" }} alt="robot" />
             </div>
           </div>
         </div>

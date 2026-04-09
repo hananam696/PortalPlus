@@ -527,7 +527,7 @@ Cybersecurity protects patient data and ensures uninterrupted medical services.`
             <div className="robot-container animate-float drop-shadow-[0_0_30px_rgba(139,92,246,0.3)]">
               <div className="robot-glow" />
               <img
-                src="/campus/lock.png"
+                src="/campus/cyber-lock.png"
                 style={{ width: "80%", height: "75%", objectFit: "contain" }}
               />
             </div>

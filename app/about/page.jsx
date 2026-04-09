@@ -24,10 +24,10 @@ import { motion } from "framer-motion";
 export default function AboutPage() {
   const team = [
     {
-      name: "Maryam Mahboob",
+      name: "Hanan Ahmed Moosa",
       role: "Frontend Developer",
       bio: "Creating beautiful and responsive user interfaces",
-      initials: "MM",
+      initials: "HM",
       color: "emerald",
     },
     {
@@ -38,10 +38,10 @@ export default function AboutPage() {
       color: "blue",
     },
     {
-      name: "Hanan Ahmed Moosa",
-      role: "Backend Developer",
+      name: "Maryam Mahaboob",
+      role: "AI Developer",
       bio: "Building robust server-side solutions",
-      initials: "HM",
+      initials: "MM",
       color: "purple",
     },
     {
@@ -60,7 +60,7 @@ export default function AboutPage() {
     },
     {
       name: "Rabiya Ishaq",
-      role: "Lead Developer",
+      role: "Backend Developer",
       bio: "Full-stack developer & project coordinator",
       initials: "RI",
       color: "indigo",
@@ -112,7 +112,7 @@ export default function AboutPage() {
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
-        
+
         <div className="max-w-7xl mx-auto px-6 py-24 relative">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -275,7 +275,7 @@ export default function AboutPage() {
             <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-8 text-white text-center relative overflow-hidden">
               <div className="absolute -top-10 -right-10 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
               <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-              
+
               <div className="relative">
                 <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 border-4 border-white/50">
                   <Crown size={40} className="text-white" />
