@@ -1,5 +1,3 @@
-// app/page.jsx
-
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
@@ -468,7 +466,7 @@ export default function HomePage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.6 }}
         >
-          {/* ── LEARN MODULE CARD ── */}
+          {/* ── LEARN MODULE CARD (with progress removed) ── */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -505,13 +503,7 @@ export default function HomePage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <div className="hidden sm:block text-right">
-                      <p className="text-xs text-gray-400 mb-1">Your progress</p>
-                      <div className="w-24 h-1.5 bg-gray-200 rounded-full">
-                        <div className="h-full w-0 bg-emerald-500 rounded-full" />
-                      </div>
-                    </div>
+                  <div className="flex-shrink-0">
                     <ArrowRight
                       className="text-gray-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all"
                       size={20}
