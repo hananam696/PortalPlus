@@ -1,6 +1,6 @@
-// C:\Users\Marroom\Documents\GitHub\PortalPlus\app\sustainability\page.jsx
 "use client";
 
+import ProtectedRoute from "../../components/ProtectedRoute";
 import { useState, useEffect } from "react";
 import { Leaf, Award, CheckCircle, Trophy, TrendingUp, Star, Lock, GitShare2 } from "lucide-react";
 
@@ -119,7 +119,7 @@ function getLeaderboardData() {
   ];
 }
 
-export default function SustainabilityPage() {
+function SustainabilityContent() {
   const [activeTab, setActiveTab] = useState("overview");
   const [data, setData] = useState({});
   const [badges, setBadges] = useState({});
@@ -633,5 +633,14 @@ function LeaderboardTab({ data }) {
         </div>
       )}
     </div>
+  );
+}
+
+// ✅ Wrap with ProtectedRoute
+export default function Page() {
+  return (
+    <ProtectedRoute>
+      <SustainabilityContent />
+    </ProtectedRoute>
   );
 }

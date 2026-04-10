@@ -1,9 +1,10 @@
 "use client";
 
+import ProtectedRoute from "../../components/ProtectedRoute";
 import { useState, useRef, useEffect } from "react";
 import { FileText, Upload, Search, X, Loader2, CheckCircle, Download, Eye, Trash2 } from "lucide-react";
 
-export default function CertificatesPage() {
+function CertificatesContent() {
   const [query, setQuery] = useState("");
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -135,7 +136,6 @@ export default function CertificatesPage() {
   return (
     <main className="min-h-screen p-8 bg-gradient-to-b from-blue-50 to-gray-50">
       <div className="max-w-7xl mx-auto">
-
         <div className="mb-10">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Certificate Repository</h1>
           <p className="text-gray-600 text-lg">Store and manage your certificates securely</p>
@@ -385,5 +385,13 @@ export default function CertificatesPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <ProtectedRoute>
+      <CertificatesContent />
+    </ProtectedRoute>
   );
 }
