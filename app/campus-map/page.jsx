@@ -191,12 +191,19 @@ function CampusMapInner() {
                 <h1 className="text-5xl font-black bg-gradient-to-r from-white via-emerald-200 to-white bg-clip-text text-transparent">
                   Campus Map
                 </h1>
-                <button
+                {/* <button
                   onClick={() => setShowHelp(!showHelp)}
                   className="w-8 h-8 rounded-full bg-slate-700 border border-slate-600 text-slate-400 hover:text-white hover:bg-slate-600 transition text-sm font-bold"
                 >
                   ?
-                </button>
+                </button> */}
+                <button
+  onClick={() => setShowHelp(!showHelp)}
+  title="How to use the map"
+  className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-700 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-600 transition text-sm font-medium"
+>
+  ❓ How to Use
+</button>
               </div>
 
               <p className="mt-3 text-slate-300 text-lg max-w-2xl">
