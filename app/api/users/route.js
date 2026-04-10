@@ -44,7 +44,8 @@ export async function POST(req) {
     return Response.json({ success: false, error: err.message });
   }
 }
-// ✅ LOGIN
+
+// ✅ LOGIN - UPDATED to return both firstName and lastName
 export async function PUT(req) {
   try {
     await connectDB();
@@ -70,16 +71,21 @@ export async function PUT(req) {
       { expiresIn: "7d" }
     );
 
+    // ✅ FIX: Return both firstName AND lastName
     return Response.json({
       success: true,
       token,
       user: {
+        id: user._id,
         email: user.email,
-        firstName: user.firstName,
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",  // ← ADD THIS LINE
+        role: user.role,
       },
     });
 
   } catch (err) {
+    console.error("Login error:", err);
     return Response.json({ success: false, error: err.message });
   }
 }
