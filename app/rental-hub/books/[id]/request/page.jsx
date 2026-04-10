@@ -6,30 +6,58 @@ import {
   MapPin,
   NotebookPen,
   ShieldCheck,
+  CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
-import { BOOKS } from "../../data";
-
-/* ---------------- PAGE ---------------- */
 export default function BookRequestPage() {
   const params = useParams();
   const router = useRouter();
-
-  const book = useMemo(() => BOOKS.find((b) => b.id === params.id), [params.id]);
+  const [book, setBook] = useState(null);
+  const [loadingBook, setLoadingBook] = useState(true);
 
   const [weeks, setWeeks] = useState(1);
   const [pickupDate, setPickupDate] = useState("");
   const [notes, setNotes] = useState("");
   const [agree, setAgree] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // ✅ Fetch book from API instead of static BOOKS
+  useEffect(() => {
+    async function fetchBook() {
+      try {
+        const res = await fetch(`/api/listings/${params.id}`);
+        const data = await res.json();
+        if (data && !data.error) {
+          setBook(data);
+        }
+      } catch (error) {
+        console.error("Error fetching book:", error);
+      } finally {
+        setLoadingBook(false);
+      }
+    }
+    if (params.id) {
+      fetchBook();
+    }
+  }, [params.id]);
 
   const total = useMemo(() => {
     if (!book) return 0;
     return weeks * book.rentPrice;
   }, [weeks, book]);
+
+  // Show loading state
+  if (loadingBook) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (!book) {
     return (
@@ -39,7 +67,6 @@ export default function BookRequestPage() {
           <p className="text-slate-600 mt-2">
             This book does not exist or was removed.
           </p>
-
           <Link
             href="/rental-hub/books"
             className="inline-flex mt-6 px-5 py-3 rounded-2xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition"
@@ -64,7 +91,79 @@ export default function BookRequestPage() {
       return;
     }
 
-    setSubmitted(true);
+    setLoading(true);
+
+    // Get current user
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    
+    // Calculate end date
+    const startDate = new Date(pickupDate);
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + (weeks * 7));
+
+    // Create rental request
+    const rentalRequest = {
+      id: Date.now().toString(),
+      itemId: book._id,
+      itemTitle: book.title,
+      itemType: "book",
+      ownerId: book.userId,
+      ownerName: book.userName || "Book Owner",
+      ownerEmail: book.userEmail || "owner@udst.edu.qa",
+      renterId: user.id || "user_001",
+      renterName: user.firstName ? `${user.firstName} ${user.lastName}` : "Student",
+      renterEmail: user.email || "student@udst.edu.qa",
+      duration: weeks === 1 ? "1week" : weeks === 2 ? "2weeks" : `${weeks}weeks`,
+      weeks: weeks,
+      startDate: pickupDate,
+      endDate: endDate.toISOString().split('T')[0],
+      totalPrice: total,
+      weeklyPrice: book.rentPrice,
+      message: notes,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      location: book.location,
+    };
+
+    // Save to localStorage
+    const existingRequests = JSON.parse(localStorage.getItem("rental_requests") || "[]");
+    existingRequests.push(rentalRequest);
+    localStorage.setItem("rental_requests", JSON.stringify(existingRequests));
+
+    // Also save to user's sent requests
+    const myRequests = JSON.parse(localStorage.getItem(`my_requests_${user.email}`) || "[]");
+    myRequests.push(rentalRequest);
+    localStorage.setItem(`my_requests_${user.email}`, JSON.stringify(myRequests));
+
+    setTimeout(() => {
+      setLoading(false);
+      setSubmitted(true);
+    }, 500);
+  }
+
+  // Get tomorrow's date as minimum
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = tomorrow.toISOString().split('T')[0];
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-slate-50 px-6 py-20">
+        <div className="max-w-2xl mx-auto bg-white rounded-3xl border p-10 text-center">
+          <CheckCircle className="w-16 h-16 text-emerald-600 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-slate-900">Request Sent! ✅</h1>
+          <p className="text-slate-600 mt-2">Your rental request has been submitted successfully.</p>
+          <div className="mt-6 flex gap-3 justify-center">
+            <Link href="/rental-hub/my-rentals" className="px-5 py-2 bg-emerald-600 text-white rounded-xl font-semibold">
+              View My Rentals
+            </Link>
+            <Link href="/rental-hub/books" className="px-5 py-2 border rounded-xl font-semibold">
+              Browse More Books
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -74,15 +173,15 @@ export default function BookRequestPage() {
         <div className="flex items-center justify-between gap-4">
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900"
+            className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 transition"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </button>
 
           <Link
-            href={`/rental-hub/books/${book.id}`}
-            className="text-sm font-semibold text-emerald-700 hover:text-emerald-900"
+            href={`/rental-hub/books/${book._id}`}
+            className="text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition"
           >
             Back to details
           </Link>
@@ -98,140 +197,125 @@ export default function BookRequestPage() {
               Fill in the details below to request this book from the owner.
             </p>
 
-            {submitted ? (
-              <div className="mt-8 rounded-3xl border bg-emerald-50 p-8">
-                <h2 className="text-2xl font-bold text-emerald-800">
-                  Request Sent ✅
-                </h2>
-                <p className="text-slate-700 mt-2">
-                  Your request has been submitted. The owner will be notified and
-                  can accept or reject your request.
+            <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+              {/* RENT WEEKS */}
+              <div>
+                <label className="block font-semibold text-slate-900 mb-2">
+                  Rental Duration (weeks)
+                </label>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setWeeks((w) => Math.max(1, w - 1))}
+                    className="w-12 h-12 rounded-2xl border bg-white hover:bg-slate-50 font-bold text-lg transition"
+                  >
+                    −
+                  </button>
+
+                  <div className="flex-1 rounded-2xl border bg-slate-50 px-5 py-4 text-center">
+                    <p className="text-lg font-bold text-slate-900">
+                      {weeks} week{weeks > 1 ? "s" : ""}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      {book.rentPrice} QAR / week
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setWeeks((w) => Math.min(12, w + 1))}
+                    className="w-12 h-12 rounded-2xl border bg-white hover:bg-slate-50 font-bold text-lg transition"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <p className="text-xs text-slate-500 mt-2">
+                  Max duration: 12 weeks.
                 </p>
+              </div>
 
-                <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                  <Link
-                    href="/rental-hub/books"
-                    className="px-6 py-3 rounded-2xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition text-center"
-                  >
-                    Back to Books
-                  </Link>
+              {/* PICKUP DATE */}
+              <div>
+                <label className="block font-semibold text-slate-900 mb-2">
+                  Pickup Date
+                </label>
 
-                  <Link
-                    href="/rental-hub"
-                    className="px-6 py-3 rounded-2xl border bg-white hover:bg-slate-50 font-bold transition text-center"
-                  >
-                    Go to Rental Hub
-                  </Link>
+                <div className="relative">
+                  <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-700" />
+                  <input
+                    type="date"
+                    value={pickupDate}
+                    onChange={(e) => setPickupDate(e.target.value)}
+                    min={minDate}
+                    className="w-full pl-12 pr-4 py-4 rounded-2xl border bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                    required
+                  />
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Earliest pickup: {new Date(minDate).toLocaleDateString()}
+                </p>
+              </div>
+
+              {/* NOTES */}
+              <div>
+                <label className="block font-semibold text-slate-900 mb-2">
+                  Notes to Owner (optional)
+                </label>
+
+                <div className="relative">
+                  <NotebookPen className="absolute left-4 top-5 w-5 h-5 text-emerald-700" />
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={4}
+                    placeholder="Example: Hi! I can pick it up after 2pm at the library desk. I need this for my upcoming exam. Thank you!"
+                    className="w-full pl-12 pr-4 py-4 rounded-2xl border bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 resize-none"
+                  />
                 </div>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-                {/* RENT WEEKS */}
-                <div>
-                  <label className="block font-semibold text-slate-900 mb-2">
-                    Rental Duration (weeks)
-                  </label>
 
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setWeeks((w) => Math.max(1, w - 1))}
-                      className="w-12 h-12 rounded-2xl border bg-white hover:bg-slate-50 font-bold text-lg transition"
-                    >
-                      −
-                    </button>
-
-                    <div className="flex-1 rounded-2xl border bg-slate-50 px-5 py-4 text-center">
-                      <p className="text-lg font-bold text-slate-900">
-                        {weeks} week{weeks > 1 ? "s" : ""}
-                      </p>
-                      <p className="text-sm text-slate-500">
-                        {book.rentPrice} QAR / week
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setWeeks((w) => Math.min(12, w + 1))}
-                      className="w-12 h-12 rounded-2xl border bg-white hover:bg-slate-50 font-bold text-lg transition"
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  <p className="text-xs text-slate-500 mt-2">
-                    Max duration: 12 weeks.
+              {/* AGREEMENT */}
+              <div className="rounded-2xl border bg-slate-50 p-5 flex items-start gap-3">
+                <ShieldCheck className="w-5 h-5 text-emerald-700 mt-1" />
+                <div className="flex-1">
+                  <p className="font-semibold text-slate-900">
+                    Campus Exchange Rules
                   </p>
-                </div>
+                  <p className="text-sm text-slate-600 mt-1">
+                    I will meet the owner in a public campus area and return
+                    the book on time in good condition.
+                  </p>
 
-                {/* PICKUP DATE */}
-                <div>
-                  <label className="block font-semibold text-slate-900 mb-2">
-                    Pickup Date
-                  </label>
-
-                  <div className="relative">
-                    <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-700" />
+                  <label className="flex items-center gap-2 mt-4 text-sm text-slate-700">
                     <input
-                      type="date"
-                      value={pickupDate}
-                      onChange={(e) => setPickupDate(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 rounded-2xl border bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                      type="checkbox"
+                      checked={agree}
+                      onChange={(e) => setAgree(e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                     />
-                  </div>
-                </div>
-
-                {/* NOTES */}
-                <div>
-                  <label className="block font-semibold text-slate-900 mb-2">
-                    Notes to Owner (optional)
+                    I agree to the terms and conditions
                   </label>
-
-                  <div className="relative">
-                    <NotebookPen className="absolute left-4 top-5 w-5 h-5 text-emerald-700" />
-                    <textarea
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      rows={4}
-                      placeholder="Example: Hi! I can pick it up after 2pm at the library desk..."
-                      className="w-full pl-12 pr-4 py-4 rounded-2xl border bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600 resize-none"
-                    />
-                  </div>
                 </div>
+              </div>
 
-                {/* AGREEMENT */}
-                <div className="rounded-2xl border bg-slate-50 p-5 flex items-start gap-3">
-                  <ShieldCheck className="w-5 h-5 text-emerald-700 mt-1" />
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-900">
-                      Campus Exchange Rules
-                    </p>
-                    <p className="text-sm text-slate-600 mt-1">
-                      I will meet the owner in a public campus area and return
-                      the book on time in good condition.
-                    </p>
-
-                    <label className="flex items-center gap-2 mt-4 text-sm text-slate-700">
-                      <input
-                        type="checkbox"
-                        checked={agree}
-                        onChange={(e) => setAgree(e.target.checked)}
-                        className="w-4 h-4"
-                      />
-                      I agree
-                    </label>
+              {/* SUBMIT BUTTON */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 rounded-2xl bg-emerald-600 text-white font-extrabold hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Sending Request...
                   </div>
-                </div>
-
-                {/* SUBMIT */}
-                <button
-                  type="submit"
-                  className="w-full py-4 rounded-2xl bg-emerald-600 text-white font-extrabold hover:bg-emerald-700 transition"
-                >
-                  Confirm Request • {total} QAR
-                </button>
-              </form>
-            )}
+                ) : (
+                  `Confirm Request • ${total} QAR`
+                )}
+              </button>
+            </form>
           </div>
 
           {/* RIGHT: SUMMARY CARD */}
@@ -241,16 +325,23 @@ export default function BookRequestPage() {
             </p>
 
             <div className="mt-4 flex gap-4">
-              <img
-                src={book.cover}
-                alt={book.title}
-                className="w-20 h-28 object-cover rounded-2xl border"
-              />
+              {book.image ? (
+                <img
+                  src={book.image}
+                  alt={book.title}
+                  className="w-20 h-28 object-cover rounded-2xl border"
+                />
+              ) : (
+                <div className="w-20 h-28 bg-gray-200 rounded-2xl flex items-center justify-center">
+                  <span className="text-gray-400">No image</span>
+                </div>
+              )}
               <div>
                 <p className="font-bold text-slate-900 leading-snug">
                   {book.title}
                 </p>
                 <p className="text-sm text-slate-600 mt-1">{book.author}</p>
+                <p className="text-xs text-emerald-600 mt-1">{book.condition}</p>
               </div>
             </div>
 
@@ -277,16 +368,16 @@ export default function BookRequestPage() {
 
             <div className="mt-6 flex items-start gap-3">
               <MapPin className="w-5 h-5 text-emerald-700 mt-0.5" />
-              <p className="text-sm text-slate-700">
-                Pickup Location:{" "}
-                <span className="font-semibold">{book.location}</span>
-              </p>
+              <div>
+                <p className="text-sm font-medium text-slate-700">Pickup Location</p>
+                <p className="text-sm text-slate-600">{book.location || "UDST Main Campus - Library"}</p>
+              </div>
             </div>
 
             <div className="mt-6 rounded-2xl bg-emerald-50 border border-emerald-100 p-5">
               <p className="font-bold text-emerald-900">Eco Bonus 🌿</p>
               <p className="text-sm text-slate-700 mt-1">
-                Renting this book gives you Eco Points in Sustainability.
+                Renting this book gives you +{Math.floor(book.rentPrice * 2)} Eco Points in Sustainability module.
               </p>
             </div>
           </div>

@@ -14,7 +14,10 @@ import {
   X,
   Info,
   Settings,
-  MessageCircle
+  MessageCircle,
+  BookOpen,
+  Calendar,
+  Inbox,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -88,11 +91,11 @@ export default function Navbar({ onOpenChat }) {
 
         {/* NAV LINKS - Desktop */}
         <div className="hidden md:flex items-center gap-6 lg:gap-8 text-gray-600">
-       <NavItem icon={<Leaf size={18} />} label="Sustainability" link="/sustainability" pathname={pathname} />
-<NavItem icon={<Home size={18} />} label="Rental Hub" link="/rental-hub" pathname={pathname} />
-<NavItem icon={<Map size={18} />} label="Campus Map" link="/campus-map" pathname={pathname} />
-<NavItem icon={<FileText size={18} />} label="Certificates" link="/certificates" pathname={pathname} />
-<NavItem icon={<Info size={18} />} label="About" link="/about" pathname={pathname} />
+          <NavItem icon={<Leaf size={18} />} label="Sustainability" link="/sustainability" pathname={pathname} />
+          <NavItem icon={<Home size={18} />} label="Rental Hub" link="/rental-hub" pathname={pathname} />
+          <NavItem icon={<Map size={18} />} label="Campus Map" link="/campus-map" pathname={pathname} />
+          <NavItem icon={<FileText size={18} />} label="Certificates" link="/certificates" pathname={pathname} />
+          <NavItem icon={<Info size={18} />} label="About" link="/about" pathname={pathname} />
         </div>
 
         {/* RIGHT SECTION */}
@@ -109,23 +112,52 @@ export default function Navbar({ onOpenChat }) {
           {/* AUTH SECTION */}
           {isLoggedIn && user ? (
             <div className="flex items-center gap-1 sm:gap-2">
-              <Link
-                href="/profile"
-                className="hidden md:flex items-center gap-2 sm:gap-3 bg-emerald-50 pl-2 sm:pl-3 pr-1 py-1 rounded-full hover:bg-emerald-100 transition cursor-pointer"
-              >
-                <span className="text-xs sm:text-sm font-medium text-emerald-700 max-w-[100px] truncate">
-                  {getDisplayName()}
-                </span>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm shadow-sm">
-                  {getUserInitials()}
+              {/* User Menu - Desktop */}
+              <div className="relative group">
+                <button className="hidden md:flex items-center gap-2 sm:gap-3 bg-emerald-50 pl-2 sm:pl-3 pr-1 py-1 rounded-full hover:bg-emerald-100 transition cursor-pointer">
+                  <span className="text-xs sm:text-sm font-medium text-emerald-700 max-w-[100px] truncate">
+                    {getDisplayName()}
+                  </span>
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm shadow-sm">
+                    {getUserInitials()}
+                  </div>
+                </button>
+                
+                {/* Dropdown Menu */}
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="p-2">
+                    <Link
+                      href="/profile"
+                      className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-emerald-50 rounded-lg transition"
+                    >
+                      <User size={16} />
+                      <span className="text-sm">My Profile</span>
+                    </Link>
+                    <Link
+                      href="/rental-hub/my-rentals"
+                      className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-emerald-50 rounded-lg transition"
+                    >
+                      <BookOpen size={16} />
+                      <span className="text-sm">My Rentals</span>
+                    </Link>
+                    <Link
+                      href="/rental-hub/incoming-requests"
+                      className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-emerald-50 rounded-lg transition"
+                    >
+                      <Inbox size={16} />
+                      <span className="text-sm">Incoming Requests</span>
+                    </Link>
+                    <div className="border-t my-1"></div>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 w-full px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                    >
+                      <LogOut size={16} />
+                      <span className="text-sm">Sign Out</span>
+                    </button>
+                  </div>
                 </div>
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <LogOut size={18} className="text-gray-600" />
-              </button>
+              </div>
             </div>
           ) : (
             <div className="flex items-center gap-1 sm:gap-2">
@@ -157,7 +189,7 @@ export default function Navbar({ onOpenChat }) {
 
       {/* MOBILE MENU */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-gray-200 bg-white">
+        <div className="md:hidden border-t border-gray-200 bg-white max-h-[calc(100vh-70px)] overflow-y-auto">
           <div className="px-4 py-3 space-y-1">
             <MobileNavItem icon={<Leaf size={18} />} label="Sustainability" link="/sustainability" />
             <MobileNavItem icon={<Home size={18} />} label="Rental Hub" link="/rental-hub" />
@@ -175,32 +207,28 @@ export default function Navbar({ onOpenChat }) {
 
             {isLoggedIn && user ? (
               <div className="border-t border-gray-100 mt-3 pt-3">
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-emerald-50 rounded-xl transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold">
-                    {getUserInitials()}
+                <div className="px-4 py-2">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold">
+                      {getUserInitials()}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{getDisplayName()}</p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{getDisplayName()}</p>
-                    <p className="text-xs text-gray-500">{user.email}</p>
-                  </div>
-                </Link>
-                <Link
-                  href="/profile/settings"
-                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <Settings size={18} className="text-gray-500" />
-                  <span className="font-medium">Settings</span>
-                </Link>
+                </div>
+                
+                <MobileNavItem icon={<User size={18} />} label="My Profile" link="/profile" />
+                <MobileNavItem icon={<BookOpen size={18} />} label="My Rentals" link="/rental-hub/my-rentals" />
+                <MobileNavItem icon={<Inbox size={18} />} label="Incoming Requests" link="/rental-hub/incoming-requests" />
+                <MobileNavItem icon={<Settings size={18} />} label="Settings" link="/profile/settings" />
+                
                 <button
                   onClick={() => { handleLogout(); setIsMenuOpen(false); }}
-                  className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                  className="flex items-center gap-3 w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl transition-colors mt-2"
                 >
-                  <LogOut size={18} className="text-gray-500" />
+                  <LogOut size={18} />
                   <span className="font-medium">Sign Out</span>
                 </button>
               </div>
@@ -231,8 +259,7 @@ export default function Navbar({ onOpenChat }) {
 }
 
 function NavItem({ icon, label, link, pathname }) {
-  const isActive =
-    pathname === link || pathname.startsWith(link + "/");
+  const isActive = pathname === link || pathname.startsWith(link + "/");
 
   return (
     <Link
@@ -249,12 +276,15 @@ function NavItem({ icon, label, link, pathname }) {
   );
 }
 
-function MobileNavItem({ icon, label, link }) {
+function MobileNavItem({ icon, label, link, onClick }) {
   return (
     <Link
       href={link}
       className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-emerald-50 rounded-xl transition-colors"
-      onClick={() => document.activeElement?.blur()}
+      onClick={() => {
+        document.activeElement?.blur();
+        if (onClick) onClick();
+      }}
     >
       {icon}
       <span className="font-medium">{label}</span>

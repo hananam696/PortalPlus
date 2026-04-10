@@ -3,19 +3,25 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, MapPin, Coins, ShieldCheck } from "lucide-react";
+import { ArrowLeft, MapPin, Coins, ShieldCheck, Calculator, Leaf } from "lucide-react";
 
 export default function CalculatorDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
   const [calculator, setCalculator] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchCalculator() {
-      const res = await fetch("/api/listings");
-      const data = await res.json();
-      const found = data.find((item) => item._id.toString() === id);
-      setCalculator(found);
+      try {
+        const res = await fetch(`/api/listings/${id}`);
+        const data = await res.json();
+        setCalculator(data);
+      } catch (error) {
+        console.error("Error fetching calculator:", error);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchCalculator();
   }, [id]);
@@ -35,10 +41,23 @@ export default function CalculatorDetailsPage() {
     router.push("/rental-hub/calculators");
   }
 
-  if (!calculator) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!calculator) {
+    return (
+      <div className="min-h-screen bg-slate-50 px-6 py-20">
+        <div className="max-w-3xl mx-auto bg-white border rounded-3xl p-10 shadow-sm text-center">
+          <h1 className="text-2xl font-bold text-slate-900">Calculator not found</h1>
+          <Link href="/rental-hub/calculators" className="inline-flex mt-6 px-5 py-3 rounded-2xl bg-emerald-600 text-white font-semibold">
+            Go to Calculators List
+          </Link>
+        </div>
       </div>
     );
   }
@@ -63,7 +82,7 @@ export default function CalculatorDetailsPage() {
 
           <Link
             href="/rental-hub/calculators"
-            className="text-sm font-semibold text-blue-700 hover:text-blue-900"
+            className="text-sm font-semibold text-emerald-700 hover:text-emerald-900"
           >
             View all calculators
           </Link>
@@ -74,11 +93,17 @@ export default function CalculatorDetailsPage() {
           <div className="grid md:grid-cols-2">
 
             {/* IMAGE */}
-            <img
-              src={calculator.image || "/placeholder.jpg"}
-              alt={calculator.model}
-              className="w-full h-[380px] object-cover"
-            />
+            {calculator.image ? (
+              <img
+                src={calculator.image}
+                alt={calculator.model}
+                className="w-full h-[380px] object-cover"
+              />
+            ) : (
+              <div className="w-full h-[380px] bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
+                <Calculator size={80} className="text-emerald-600" />
+              </div>
+            )}
 
             {/* INFO */}
             <div className="p-8 md:p-10">
@@ -87,19 +112,19 @@ export default function CalculatorDetailsPage() {
 
               <div className="mt-6 space-y-3 text-slate-700">
                 <div className="flex items-center gap-2">
-                  <Coins size={18} className="text-blue-700" />
+                  <Coins size={18} className="text-emerald-700" />
                   Rent: <span className="font-bold">{calculator.rentPrice} QAR / week</span>
                 </div>
 
                 {calculator.deposit && (
                   <div className="flex items-center gap-2">
-                    <ShieldCheck size={18} className="text-blue-700" />
+                    <ShieldCheck size={18} className="text-emerald-700" />
                     Deposit: <span className="font-bold">{calculator.deposit} QAR</span>
                   </div>
                 )}
 
                 <div className="flex items-center gap-2">
-                  <MapPin size={18} className="text-blue-700" />
+                  <MapPin size={18} className="text-emerald-700" />
                   {calculator.location || "Location not set"}
                 </div>
 
@@ -108,10 +133,13 @@ export default function CalculatorDetailsPage() {
                 </div>
               </div>
 
-              {/* CONTACT BUTTON */}
-              <button className="mt-8 w-full bg-blue-600 text-white px-6 py-3.5 rounded-2xl font-bold hover:bg-blue-700 transition">
-                Contact Owner
-              </button>
+              {/* ✅ REQUEST TO RENT BUTTON (Changed from Contact Owner) */}
+              <Link
+                href={`/rental-hub/calculators/${calculator._id}/request`}
+                className="mt-8 w-full bg-emerald-600 text-white px-6 py-3.5 rounded-2xl font-bold hover:bg-emerald-700 transition text-center inline-block"
+              >
+                Request to Rent
+              </Link>
 
               {/* OWNER ONLY BUTTONS */}
               {isOwner && (
@@ -142,8 +170,8 @@ export default function CalculatorDetailsPage() {
             <p className="text-sm mt-2">Meet in a public campus area like library.</p>
           </div>
           <div className="bg-white rounded-3xl border p-6">
-            <h3 className="font-bold">Eco Impact</h3>
-            <p className="text-sm mt-2">Renting helps sustainability.</p>
+            <h3 className="font-bold flex items-center gap-2"><Leaf size={16} /> Eco Impact</h3>
+            <p className="text-sm mt-2">Renting helps sustainability and reduces e-waste.</p>
           </div>
           <div className="bg-white rounded-3xl border p-6">
             <h3 className="font-bold">Reminder</h3>

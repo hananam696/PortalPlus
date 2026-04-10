@@ -63,14 +63,6 @@ export default function CalculatorsListPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to Rental Hub
           </Link>
-
-          {/* <Link
-            href="/rental-hub/post/calculator"
-            className="px-5 py-3 rounded-2xl bg-blue-600 text-white font-extrabold hover:bg-blue-700 transition inline-flex items-center gap-2"
-          >
-            <Plus size={18} />
-            Post a Calculator
-          </Link> */}
         </div>
 
         {/* HEADER */}
@@ -81,11 +73,11 @@ export default function CalculatorsListPage() {
 
           {/* SEARCH */}
           <div className="relative mt-6">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-700" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-700" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search..."
+              placeholder="Search by brand, model, or location..."
               className="w-full pl-12 pr-4 py-4 rounded-2xl border"
             />
           </div>
@@ -99,11 +91,17 @@ export default function CalculatorsListPage() {
               href={`/rental-hub/calculators/${c._id}`}
               className="bg-white rounded-3xl border shadow-sm overflow-hidden hover:shadow-md transition"
             >
-              <img
-                src={c.image || "/placeholder.jpg"}
-                alt={c.model}
-                className="w-full h-44 object-cover"
-              />
+              {c.image ? (
+                <img
+                  src={c.image}
+                  alt={c.model}
+                  className="w-full h-44 object-cover"
+                />
+              ) : (
+                <div className="w-full h-44 bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
+                  <Calculator size={48} className="text-emerald-600" />
+                </div>
+              )}
 
               <div className="p-6">
                 <p className="text-xs text-slate-500">{c.brand || "Brand"}</p>
@@ -112,7 +110,7 @@ export default function CalculatorsListPage() {
                   {c.model || "Calculator"}
                 </h2>
 
-                <p className="text-blue-700 font-bold mt-2">
+                <p className="text-emerald-700 font-bold mt-2">
                   {c.rentPrice || 0} QAR / week
                 </p>
 
@@ -127,8 +125,9 @@ export default function CalculatorsListPage() {
 
         {/* EMPTY */}
         {filtered.length === 0 && (
-          <div className="mt-10 text-center">
-            No calculators found
+          <div className="mt-10 text-center py-12">
+            <Calculator size={48} className="mx-auto text-gray-300 mb-3" />
+            <p className="text-gray-500">No calculators found</p>
           </div>
         )}
       </div>
