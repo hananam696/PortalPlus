@@ -1,57 +1,83 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   User,
   Mail,
   Hash,
   BookOpen,
   Calendar,
-  Award,
+  GraduationCap,
   Edit2,
   Save,
   X,
   LogOut,
   Trash2,
-  Leaf,
-  GraduationCap,
-  MapPin,
-  Phone,
-  Download,
   Shield,
-  Bell,
-  Moon,
-  Globe,
+  Phone,
 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  // Demo user data
+  // User data state
   const [userData, setUserData] = useState({
-    name: "Rabiya Ishaq",
-    email: "rabiya.ishaq@udst.edu.qa",
-    studentId: "202012345",
-    program: "Computer Science",
-    year: "3rd Year",
-    graduation: "May 2025",
-    gpa: "3.75",
-    department: "College of Engineering",
-    campus: "Main Campus",
-    phone: "+974 1234 5678",
-    bio: "Passionate about sustainability and technology. Working on making UDST greener!",
-    ecoPoints: 355,
-    ecoLevel: "Forest",
-    badges: 4,
-    joinDate: "September 2020",
+    firstName: "",
+    lastName: "",
+    email: "",
+    studentId: "",
+    program: "",
+    year: "",
+    graduation: "",
+    phone: "",
   });
 
   const [editForm, setEditForm] = useState({ ...userData });
+
+  // Load user from localStorage on mount
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (!userStr) {
+      router.push("/login");
+      return;
+    }
+    try {
+      const user = JSON.parse(userStr);
+      
+      setUserData({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+        studentId: user.studentId || "",
+        program: user.program || "",
+        year: user.year || "",
+        graduation: user.graduation || "",
+        phone: user.phone || "",
+      });
+      
+      setEditForm({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+        studentId: user.studentId || "",
+        program: user.program || "",
+        year: user.year || "",
+        graduation: user.graduation || "",
+        phone: user.phone || "",
+      });
+    } catch (error) {
+      console.error("Error parsing user:", error);
+      router.push("/login");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const handleEdit = () => {
     setEditForm({ ...userData });
@@ -59,27 +85,78 @@ export default function ProfilePage() {
   };
 
   const handleSave = () => {
+    // Update local state
     setUserData({ ...editForm });
+    
+    // Update localStorage
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      user.firstName = editForm.firstName;
+      user.lastName = editForm.lastName;
+      user.studentId = editForm.studentId;
+      user.program = editForm.program;
+      user.year = editForm.year;
+      user.graduation = editForm.graduation;
+      user.phone = editForm.phone;
+      localStorage.setItem("user", JSON.stringify(user));
+    }
+    
     setIsEditing(false);
+    alert("Profile updated successfully!");
   };
 
   const handleCancel = () => {
     setIsEditing(false);
   };
 
-  const handleDeleteAccount = () => {
-    // Add delete account logic here
-    setShowDeleteConfirm(false);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/");
   };
+
+  const handleDeleteAccount = () => {
+    setShowDeleteConfirm(false);
+    handleLogout();
+  };
+
+  // Get full name for display
+  const getFullName = () => {
+    const firstName = userData.firstName || "";
+    const lastName = userData.lastName || "";
+    if (firstName || lastName) {
+      return `${firstName} ${lastName}`.trim();
+    }
+    return "Add Your Name";
+  };
+
+  // Get initials for avatar
+  const getInitials = () => {
+    const firstName = userData.firstName || "";
+    const lastName = userData.lastName || "";
+    if (firstName || lastName) {
+      return `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase();
+    }
+    return "U";
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Profile Banner */}
       <div className="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-        
         <div className="max-w-7xl mx-auto px-6 py-16 relative">
           <div className="flex flex-col md:flex-row items-center gap-8">
             {/* Profile Avatar */}
@@ -91,10 +168,9 @@ export default function ProfilePage() {
             >
               <div className="w-32 h-32 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center border-4 border-white/50 shadow-xl">
                 <span className="text-5xl font-bold text-white">
-                  {userData.name.split(' ').map(n => n[0]).join('')}
+                  {getInitials()}
                 </span>
               </div>
-              <div className="absolute -bottom-2 -right-2 bg-emerald-500 w-6 h-6 rounded-full border-4 border-white"></div>
             </motion.div>
 
             {/* Profile Info */}
@@ -104,22 +180,10 @@ export default function ProfilePage() {
               transition={{ delay: 0.2 }}
               className="text-center md:text-left text-white"
             >
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">{userData.name}</h1>
-              <p className="text-emerald-100 text-lg mb-3">{userData.program}</p>
-              <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                  <Leaf size={16} />
-                  <span>{userData.ecoPoints} Eco Points</span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                  <Award size={16} />
-                  <span>{userData.badges} Badges</span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                  <Calendar size={16} />
-                  <span>Joined {userData.joinDate}</span>
-                </div>
-              </div>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                {getFullName()}
+              </h1>
+              <p className="text-emerald-100 text-lg">{userData.email || "Add your email"}</p>
             </motion.div>
           </div>
         </div>
@@ -133,7 +197,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Profile Tabs */}
         <div className="flex border-b border-gray-200 mb-8 overflow-x-auto pb-1">
           <TabButton
@@ -143,22 +207,10 @@ export default function ProfilePage() {
             onClick={() => setActiveTab("personal")}
           />
           <TabButton
-            label="Academic"
-            icon={<GraduationCap size={18} />}
-            active={activeTab === "academic"}
-            onClick={() => setActiveTab("academic")}
-          />
-          <TabButton
             label="Settings"
             icon={<Shield size={18} />}
             active={activeTab === "settings"}
             onClick={() => setActiveTab("settings")}
-          />
-          <TabButton
-            label="Privacy"
-            icon={<Lock size={18} />}
-            active={activeTab === "privacy"}
-            onClick={() => setActiveTab("privacy")}
           />
         </div>
 
@@ -180,13 +232,12 @@ export default function ProfilePage() {
               onCancel={handleCancel}
             />
           )}
-          {activeTab === "academic" && <AcademicTab userData={userData} />}
           {activeTab === "settings" && (
             <SettingsTab
               onDeleteClick={() => setShowDeleteConfirm(true)}
+              onLogout={handleLogout}
             />
           )}
-          {activeTab === "privacy" && <PrivacyTab />}
         </motion.div>
       </div>
 
@@ -253,80 +304,91 @@ function PersonalInfoTab({ userData, isEditing, editForm, setEditForm, onEdit, o
       </div>
 
       <div className="p-6">
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="space-y-6">
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
             <InfoField
               icon={<User size={18} />}
-              label="Full Name"
-              value={userData.name}
+              label="First Name"
+              value={userData.firstName}
               editing={isEditing}
-              name="name"
-              editValue={editForm.name}
-              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+              name="firstName"
+              placeholder="Enter your first name"
+              editValue={editForm.firstName}
+              onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
             />
             <InfoField
-              icon={<Mail size={18} />}
-              label="Email Address"
-              value={userData.email}
+              icon={<User size={18} />}
+              label="Last Name"
+              value={userData.lastName}
               editing={isEditing}
-              name="email"
-              type="email"
-              editValue={editForm.email}
-              onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-            />
-            <InfoField
-              icon={<Hash size={18} />}
-              label="Student ID"
-              value={userData.studentId}
-              editing={isEditing}
-              name="studentId"
-              editValue={editForm.studentId}
-              onChange={(e) => setEditForm({ ...editForm, studentId: e.target.value })}
-            />
-            <InfoField
-              icon={<BookOpen size={18} />}
-              label="Program"
-              value={userData.program}
-              editing={isEditing}
-              name="program"
-              editValue={editForm.program}
-              onChange={(e) => setEditForm({ ...editForm, program: e.target.value })}
+              name="lastName"
+              placeholder="Enter your last name"
+              editValue={editForm.lastName}
+              onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
             />
           </div>
-
-          <div className="space-y-6">
-            <InfoField
-              icon={<MapPin size={18} />}
-              label="Campus"
-              value={userData.campus}
-              editing={isEditing}
-              name="campus"
-              editValue={editForm.campus}
-              onChange={(e) => setEditForm({ ...editForm, campus: e.target.value })}
-            />
-            <InfoField
-              icon={<Phone size={18} />}
-              label="Phone"
-              value={userData.phone}
-              editing={isEditing}
-              name="phone"
-              editValue={editForm.phone}
-              onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-            />
-            <div>
-              <label className="block text-sm text-gray-500 mb-2">Bio</label>
-              {isEditing ? (
-                <textarea
-                  value={editForm.bio}
-                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                  rows={3}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-              ) : (
-                <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">{userData.bio}</p>
-              )}
-            </div>
-          </div>
+          
+          <InfoField
+            icon={<Mail size={18} />}
+            label="Email Address"
+            value={userData.email}
+            editing={isEditing}
+            name="email"
+            type="email"
+            placeholder="Enter your email"
+            editValue={editForm.email}
+            onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+          />
+          <InfoField
+            icon={<Hash size={18} />}
+            label="Student ID"
+            value={userData.studentId || ""}
+            editing={isEditing}
+            name="studentId"
+            placeholder="Enter your student ID"
+            editValue={editForm.studentId}
+            onChange={(e) => setEditForm({ ...editForm, studentId: e.target.value })}
+          />
+          <InfoField
+            icon={<BookOpen size={18} />}
+            label="Program"
+            value={userData.program || ""}
+            editing={isEditing}
+            name="program"
+            placeholder="e.g., Computer Science"
+            editValue={editForm.program}
+            onChange={(e) => setEditForm({ ...editForm, program: e.target.value })}
+          />
+          <InfoField
+            icon={<Calendar size={18} />}
+            label="Current Year"
+            value={userData.year || ""}
+            editing={isEditing}
+            name="year"
+            placeholder="e.g., 3rd Year"
+            editValue={editForm.year}
+            onChange={(e) => setEditForm({ ...editForm, year: e.target.value })}
+          />
+          <InfoField
+            icon={<GraduationCap size={18} />}
+            label="Expected Graduation"
+            value={userData.graduation || ""}
+            editing={isEditing}
+            name="graduation"
+            placeholder="e.g., May 2025"
+            editValue={editForm.graduation}
+            onChange={(e) => setEditForm({ ...editForm, graduation: e.target.value })}
+          />
+          <InfoField
+            icon={<Phone size={18} />}
+            label="Phone Number"
+            value={userData.phone || ""}
+            editing={isEditing}
+            name="phone"
+            placeholder="Enter your phone number"
+            editValue={editForm.phone}
+            onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+          />
         </div>
       </div>
     </div>
@@ -334,7 +396,7 @@ function PersonalInfoTab({ userData, isEditing, editForm, setEditForm, onEdit, o
 }
 
 // Info Field Component
-function InfoField({ icon, label, value, editing, name, type = "text", editValue, onChange }) {
+function InfoField({ icon, label, value, editing, name, type = "text", placeholder, editValue, onChange }) {
   return (
     <div>
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
@@ -347,116 +409,34 @@ function InfoField({ icon, label, value, editing, name, type = "text", editValue
           name={name}
           value={editValue}
           onChange={onChange}
+          placeholder={placeholder}
           className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
       ) : (
-        <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">{value}</p>
+        <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
+          {value || <span className="text-gray-400">Not set</span>}
+        </p>
       )}
     </div>
   );
 }
 
-// Academic Tab
-function AcademicTab({ userData }) {
-  return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="p-6 border-b border-gray-100">
-        <h2 className="text-xl font-bold text-gray-900">Academic Information</h2>
-      </div>
-      <div className="p-6">
-        <div className="grid md:grid-cols-3 gap-6">
-          <AcademicCard
-            icon={<Calendar size={24} />}
-            label="Current Year"
-            value={userData.year}
-            color="emerald"
-          />
-          <AcademicCard
-            icon={<GraduationCap size={24} />}
-            label="Expected Graduation"
-            value={userData.graduation}
-            color="blue"
-          />
-          <AcademicCard
-            icon={<Award size={24} />}
-            label="Current GPA"
-            value={userData.gpa}
-            color="purple"
-          />
-        </div>
-
-        <div className="mt-8">
-          <h3 className="font-semibold text-gray-900 mb-4">Course Progress</h3>
-          <div className="space-y-4">
-            <ProgressBar label="Core Courses" progress={85} />
-            <ProgressBar label="Electives" progress={60} />
-            <ProgressBar label="Project Work" progress={40} />
-          </div>
-        </div>
-
-        <div className="mt-8 p-4 bg-emerald-50 rounded-xl">
-          <div className="flex items-center gap-3">
-            <Download size={20} className="text-emerald-600" />
-            <span className="text-sm text-gray-700">Download Academic Transcript</span>
-            <button className="ml-auto text-emerald-600 hover:text-emerald-700 font-medium text-sm">
-              Download PDF
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Academic Card Component
-function AcademicCard({ icon, label, value, color }) {
-  const colors = {
-    emerald: "bg-emerald-50 text-emerald-600",
-    blue: "bg-blue-50 text-blue-600",
-    purple: "bg-purple-50 text-purple-600",
-  };
-
-  return (
-    <div className="bg-gray-50 p-6 rounded-xl">
-      <div className={`w-12 h-12 ${colors[color]} rounded-xl flex items-center justify-center mb-4`}>
-        {icon}
-      </div>
-      <p className="text-sm text-gray-500 mb-1">{label}</p>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
-    </div>
-  );
-}
-
-// Progress Bar Component
-function ProgressBar({ label, progress }) {
-  return (
-    <div>
-      <div className="flex justify-between text-sm mb-1">
-        <span className="text-gray-600">{label}</span>
-        <span className="font-medium text-gray-900">{progress}%</span>
-      </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
-        <div
-          className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
-          style={{ width: `${progress}%` }}
-        ></div>
-      </div>
-    </div>
-  );
-}
-
 // Settings Tab
-function SettingsTab({ onDeleteClick }) {
+function SettingsTab({ onDeleteClick, onLogout }) {
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-gray-900">Preferences</h2>
+          <h2 className="text-xl font-bold text-gray-900">Account</h2>
         </div>
-        <div className="p-6 space-y-4">
-          <SettingToggle icon={<Bell size={18} />} label="Email Notifications" defaultChecked />
-          <SettingToggle icon={<Moon size={18} />} label="Dark Mode" />
-          <SettingToggle icon={<Globe size={18} />} label="Language" type="select" value="English" />
+        <div className="p-6">
+          <button
+            onClick={onLogout}
+            className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition"
+          >
+            <LogOut size={18} />
+            Sign Out
+          </button>
         </div>
       </div>
 
@@ -477,89 +457,6 @@ function SettingsTab({ onDeleteClick }) {
           </p>
         </div>
       </div>
-    </div>
-  );
-}
-
-// Setting Toggle Component
-function SettingToggle({ icon, label, defaultChecked, type = "toggle", value }) {
-  return (
-    <div className="flex items-center justify-between py-2">
-      <div className="flex items-center gap-3">
-        <div className="text-gray-500">{icon}</div>
-        <span className="text-gray-700">{label}</span>
-      </div>
-      {type === "toggle" ? (
-        <label className="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" className="sr-only peer" defaultChecked={defaultChecked} />
-          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-        </label>
-      ) : (
-        <select className="border border-gray-200 rounded-lg px-3 py-1 text-sm">
-          <option>{value}</option>
-        </select>
-      )}
-    </div>
-  );
-}
-
-// Privacy Tab
-function PrivacyTab() {
-  return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="p-6 border-b border-gray-100">
-        <h2 className="text-xl font-bold text-gray-900">Privacy Settings</h2>
-      </div>
-      <div className="p-6 space-y-4">
-        <PrivacyOption
-          title="Profile Visibility"
-          description="Who can see your profile"
-          options={["Public", "Students Only", "Private"]}
-          default="Students Only"
-        />
-        <PrivacyOption
-          title="Show Email"
-          description="Display your email on profile"
-          type="toggle"
-          defaultChecked={false}
-        />
-        <PrivacyOption
-          title="Activity Status"
-          description="Show when you're online"
-          type="toggle"
-          defaultChecked={true}
-        />
-        <PrivacyOption
-          title="Data Sharing"
-          description="Allow anonymous usage data collection"
-          type="toggle"
-          defaultChecked={false}
-        />
-      </div>
-    </div>
-  );
-}
-
-// Privacy Option Component
-function PrivacyOption({ title, description, type = "select", options, default: defaultValue, defaultChecked }) {
-  return (
-    <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
-      <div>
-        <h3 className="font-medium text-gray-900">{title}</h3>
-        <p className="text-sm text-gray-500">{description}</p>
-      </div>
-      {type === "select" ? (
-        <select className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
-          {options?.map((opt) => (
-            <option key={opt} selected={opt === defaultValue}>{opt}</option>
-          ))}
-        </select>
-      ) : (
-        <label className="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" className="sr-only peer" defaultChecked={defaultChecked} />
-          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-        </label>
-      )}
     </div>
   );
 }

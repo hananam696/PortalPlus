@@ -15,17 +15,54 @@ import {
   Settings,
   MessageCircle
 } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 export default function Navbar({ onOpenChat }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Replace with actual auth state
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Demo user (replace with actual user data from Firebase)
-  const user = {
-    name: "Rabiya Ishaq",
-    initials: "RI",
-    email: "rabiya@udst.edu.qa"
+  useEffect(() => {
+    const checkAuth = () => {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          const userData = JSON.parse(userStr);
+          setIsLoggedIn(true);
+          setUser(userData);
+        } catch (e) {
+          console.error("Error parsing user:", e);
+        }
+      } else {
+        setIsLoggedIn(false);
+        setUser(null);
+      }
+    };
+    
+    checkAuth();
+    window.addEventListener("storage", checkAuth);
+    return () => window.removeEventListener("storage", checkAuth);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setIsLoggedIn(false);
+    setUser(null);
+    window.location.href = "/";
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user) return "U";
+    const firstName = user.firstName || user.name?.split(" ")[0] || "";
+    const lastName = user.lastName || user.name?.split(" ")[1] || "";
+    return `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase();
+  };
+
+  const getDisplayName = () => {
+    if (!user) return "User";
+    return user.firstName ? `${user.firstName} ${user.lastName || ""}` : user.name || "User";
   };
 
   return (
@@ -58,7 +95,7 @@ export default function Navbar({ onOpenChat }) {
 
         {/* RIGHT SECTION */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* AI CHAT BUTTON - Desktop */}
+          {/* AI CHAT BUTTON */}
           <button
             onClick={onOpenChat}
             className="hidden md:flex items-center gap-2 bg-emerald-600 text-white px-3 lg:px-4 py-2 rounded-full hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md"
@@ -68,27 +105,28 @@ export default function Navbar({ onOpenChat }) {
           </button>
 
           {/* AUTH SECTION */}
-          {isLoggedIn ? (
+          {isLoggedIn && user ? (
             <div className="flex items-center gap-1 sm:gap-2">
-              {/* User Menu - Desktop */}
               <Link
                 href="/profile"
                 className="hidden md:flex items-center gap-2 sm:gap-3 bg-emerald-50 pl-2 sm:pl-3 pr-1 py-1 rounded-full hover:bg-emerald-100 transition cursor-pointer"
               >
                 <span className="text-xs sm:text-sm font-medium text-emerald-700 max-w-[100px] truncate">
-                  {user.name}
+                  {getDisplayName()}
                 </span>
                 <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm shadow-sm">
-                  {user.initials}
+                  {getUserInitials()}
                 </div>
               </Link>
-              <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <button 
+                onClick={handleLogout}
+                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
                 <LogOut size={18} className="text-gray-600" />
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-1 sm:gap-2">
-              {/* Login/Signup - Desktop */}
               <Link
                 href="/login"
                 className="hidden md:flex items-center gap-1 sm:gap-2 bg-white text-emerald-600 border border-emerald-600 px-3 lg:px-4 py-1.5 sm:py-2 rounded-full hover:bg-emerald-50 transition-all font-medium text-xs lg:text-sm"
@@ -119,45 +157,47 @@ export default function Navbar({ onOpenChat }) {
       {isMenuOpen && (
         <div className="md:hidden border-t border-gray-200 bg-white">
           <div className="px-4 py-3 space-y-1">
-            {/* Mobile Nav Links */}
             <MobileNavItem icon={<Leaf size={18} />} label="Sustainability" link="/sustainability" />
             <MobileNavItem icon={<Home size={18} />} label="Rental Hub" link="/rental-hub" />
             <MobileNavItem icon={<Map size={18} />} label="Campus Map" link="/campus-map" />
             <MobileNavItem icon={<FileText size={18} />} label="Certificates" link="/certificates" />
             <MobileNavItem icon={<Info size={18} />} label="About" link="/about" />
 
-            {/* Mobile AI Assistant */}
             <button
-              onClick={() => { onOpenChat(); setIsMenuOpen(false); }}
+              onClick={() => { onOpenChat?.(); setIsMenuOpen(false); }}
               className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-emerald-50 rounded-xl transition-colors"
             >
               <MessageCircle size={18} className="text-emerald-600" />
               <span className="font-medium">AI Assistant</span>
             </button>
 
-            {/* Mobile Auth Section */}
-            {isLoggedIn ? (
+            {isLoggedIn && user ? (
               <div className="border-t border-gray-100 mt-3 pt-3">
                 <Link
                   href="/profile"
                   className="flex items-center gap-3 px-4 py-3 hover:bg-emerald-50 rounded-xl transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   <div className="w-10 h-10 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold">
-                    {user.initials}
+                    {getUserInitials()}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{user.name}</p>
+                    <p className="font-medium text-gray-900">{getDisplayName()}</p>
                     <p className="text-xs text-gray-500">{user.email}</p>
                   </div>
                 </Link>
                 <Link
                   href="/profile/settings"
                   className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   <Settings size={18} className="text-gray-500" />
                   <span className="font-medium">Settings</span>
                 </Link>
-                <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors">
+                <button 
+                  onClick={() => { handleLogout(); setIsMenuOpen(false); }}
+                  className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                >
                   <LogOut size={18} className="text-gray-500" />
                   <span className="font-medium">Sign Out</span>
                 </button>
@@ -167,6 +207,7 @@ export default function Navbar({ onOpenChat }) {
                 <Link
                   href="/login"
                   className="flex items-center justify-center gap-2 w-full bg-white text-emerald-600 border border-emerald-600 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-all font-medium"
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   <User size={16} />
                   Sign In
@@ -174,6 +215,7 @@ export default function Navbar({ onOpenChat }) {
                 <Link
                   href="/signup"
                   className="flex items-center justify-center gap-2 w-full bg-emerald-600 text-white px-4 py-3 rounded-xl hover:bg-emerald-700 transition-all font-medium"
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   Register
                 </Link>
@@ -186,7 +228,6 @@ export default function Navbar({ onOpenChat }) {
   );
 }
 
-// Desktop Nav Item
 function NavItem({ icon, label, link }) {
   return (
     <Link
@@ -199,12 +240,12 @@ function NavItem({ icon, label, link }) {
   );
 }
 
-// Mobile Nav Item
 function MobileNavItem({ icon, label, link }) {
   return (
     <Link
       href={link}
       className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-emerald-50 rounded-xl transition-colors"
+      onClick={() => document.activeElement?.blur()}
     >
       {icon}
       <span className="font-medium">{label}</span>
