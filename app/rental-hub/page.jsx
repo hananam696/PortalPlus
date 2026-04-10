@@ -22,8 +22,7 @@ export default function RentalHubPage() {
                 Rental Hub
               </h1>
               <p className="text-gray-600 mt-2 max-w-2xl">
-                Borrow or share textbooks and calculators with UDST students.
-                Save money and reduce waste ♻️
+                Reuse, share, and reduce waste by renting books and calculators within the student community, saving money while supporting sustainability across campus.♻️
               </p>
             </div>
 
