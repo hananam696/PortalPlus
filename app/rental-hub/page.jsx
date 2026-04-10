@@ -1,5 +1,6 @@
 "use client";
 
+import ProtectedRoute from "../../components/ProtectedRoute";
 import {
   ArrowRight,
   BookOpen,
@@ -9,7 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-export default function RentalHubPage() {
+function RentalHubContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* HEADER */}
@@ -153,5 +154,14 @@ function BigCard({ title, desc, icon, link, tag }) {
         <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-gradient-to-br from-emerald-100 to-transparent rounded-full blur-2xl opacity-70"></div>
       </div>
     </Link>
+  );
+}
+
+// ✅ Wrap with ProtectedRoute
+export default function Page() {
+  return (
+    <ProtectedRoute>
+      <RentalHubContent />
+    </ProtectedRoute>
   );
 }
