@@ -91,6 +91,10 @@ export default function BookDetailsPage() {
               <div className="mt-6">
                 <p className="text-lg font-bold">{book.rentPrice} QAR / week</p>
               </div>
+              {/* CONTACT BUTTON */}
+<button className="mt-8 w-full bg-emerald-600 text-white px-6 py-3.5 rounded-2xl font-bold hover:bg-emerald-700 transition">
+  Contact Owner
+</button>
             </div>
 
           </div>

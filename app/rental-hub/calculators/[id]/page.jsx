@@ -1,124 +1,153 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, MapPin, Coins, ShieldCheck } from "lucide-react";
 
 export default function CalculatorDetailsPage() {
   const { id } = useParams();
+  const router = useRouter();
   const [calculator, setCalculator] = useState(null);
 
   useEffect(() => {
     async function fetchCalculator() {
       const res = await fetch("/api/listings");
       const data = await res.json();
-
-      const found = data.find(
-        (item) => item._id.toString() === id
-      );
-
+      const found = data.find((item) => item._id.toString() === id);
       setCalculator(found);
     }
-
     fetchCalculator();
   }, [id]);
 
+  async function handleDelete() {
+    const confirmDelete = confirm("Are you sure you want to delete?");
+    if (!confirmDelete) return;
+
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    await fetch(`/api/listings/${id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user?.id }),
+    });
+
+    router.push("/rental-hub/calculators");
+  }
+
   if (!calculator) {
     return (
-      <div className="p-10 text-center">
-        <h2 className="text-xl font-bold">Loading calculator...</h2>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  async function handleDelete() {
-  const confirmDelete = confirm("Are you sure you want to delete?");
-  if (!confirmDelete) return;
-
-  await fetch(`/api/listings/${id}`, {
-    method: "DELETE",
-  });
-
-  window.location.href = "/rental-hub/calculators";
-}
+  const isOwner =
+    typeof window !== "undefined" &&
+    JSON.parse(localStorage.getItem("user") || "{}")?.id === calculator.userId;
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-10">
+    <div className="min-h-screen bg-slate-50 px-6 py-10">
       <div className="max-w-5xl mx-auto">
 
-        {/* Back */}
-        <Link
-          href="/rental-hub/calculators"
-          className="flex items-center gap-2 text-gray-600 hover:text-black font-semibold"
-        >
-          <ArrowLeft size={18} />
-          Back to Calculators
-        </Link>
+        {/* TOP BAR */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 font-semibold"
+          >
+            <ArrowLeft size={18} />
+            Back
+          </button>
 
-        {/* Card */}
-        <div className="mt-6 bg-white rounded-3xl shadow p-8 grid md:grid-cols-2 gap-10">
+          <Link
+            href="/rental-hub/calculators"
+            className="text-sm font-semibold text-blue-700 hover:text-blue-900"
+          >
+            View all calculators
+          </Link>
+        </div>
 
-          {/* Image */}
-          <img
-            src={calculator.image}
-            alt={calculator.model}
-            className="w-full h-80 object-cover rounded-xl"
-          />
+        {/* MAIN CARD */}
+        <div className="mt-6 bg-white rounded-3xl shadow-sm border overflow-hidden">
+          <div className="grid md:grid-cols-2">
 
-          {/* Info */}
-          <div>
+            {/* IMAGE */}
+            <img
+              src={calculator.image || "/placeholder.jpg"}
+              alt={calculator.model}
+              className="w-full h-[380px] object-cover"
+            />
 
-            <p className="text-sm text-gray-500 font-semibold">
-              {calculator.brand}
-            </p>
+            {/* INFO */}
+            <div className="p-8 md:p-10">
+              <p className="text-sm text-slate-500 font-semibold">{calculator.brand}</p>
+              <h1 className="text-3xl font-extrabold text-slate-900 mt-1">{calculator.model}</h1>
 
-            <h1 className="text-3xl font-bold mt-1">
-              {calculator.model}
-            </h1>
+              <div className="mt-6 space-y-3 text-slate-700">
+                <div className="flex items-center gap-2">
+                  <Coins size={18} className="text-blue-700" />
+                  Rent: <span className="font-bold">{calculator.rentPrice} QAR / week</span>
+                </div>
 
-            <div className="mt-6 space-y-3 text-gray-700">
+                {calculator.deposit && (
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck size={18} className="text-blue-700" />
+                    Deposit: <span className="font-bold">{calculator.deposit} QAR</span>
+                  </div>
+                )}
 
-              <div className="flex items-center gap-2">
-                <Coins size={18} />
-                Rent: {calculator.rentPrice} QAR / week
+                <div className="flex items-center gap-2">
+                  <MapPin size={18} className="text-blue-700" />
+                  {calculator.location || "Location not set"}
+                </div>
+
+                <div>
+                  Condition: <span className="font-bold">{calculator.condition}</span>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={18} />
-                Deposit: {calculator.deposit} QAR
-              </div>
+              {/* CONTACT BUTTON */}
+              <button className="mt-8 w-full bg-blue-600 text-white px-6 py-3.5 rounded-2xl font-bold hover:bg-blue-700 transition">
+                Contact Owner
+              </button>
 
-              <div className="flex items-center gap-2">
-                <MapPin size={18} />
-                Location: {calculator.location}
-              </div>
+              {/* OWNER ONLY BUTTONS */}
+              {isOwner && (
+                <div className="mt-3 flex gap-3">
+                  <button
+                    onClick={() => router.push(`/rental-hub/calculators/${id}/edit`)}
+                    className="flex-1 bg-yellow-500 text-white px-6 py-3.5 rounded-2xl font-bold hover:bg-yellow-600 transition"
+                  >
+                    Edit
+                  </button>
 
-              <div>
-                Condition: <b>{calculator.condition}</b>
-              </div>
-
+                  <button
+                    onClick={handleDelete}
+                    className="flex-1 bg-red-600 text-white px-6 py-3.5 rounded-2xl font-bold hover:bg-red-700 transition"
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
             </div>
+          </div>
+        </div>
 
-            {/* Contact */}
-            <button className="mt-8 bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700">
-              Contact Owner
-            </button>
-
-            <button
-            onClick={() => window.location.href = `/rental-hub/calculators/${id}/edit`}
-            className="mt-4 bg-yellow-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-yellow-600"
-            >
-              Edit Listing
-              </button>
-
-            <button
-            onClick={handleDelete}
-            className="mt-4 bg-red-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-700"
-            >
-              Delete Listing
-              </button>
-
+        {/* EXTRA INFO */}
+        <div className="mt-10 grid md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-3xl border p-6">
+            <h3 className="font-bold">Pickup Tip</h3>
+            <p className="text-sm mt-2">Meet in a public campus area like library.</p>
+          </div>
+          <div className="bg-white rounded-3xl border p-6">
+            <h3 className="font-bold">Eco Impact</h3>
+            <p className="text-sm mt-2">Renting helps sustainability.</p>
+          </div>
+          <div className="bg-white rounded-3xl border p-6">
+            <h3 className="font-bold">Reminder</h3>
+            <p className="text-sm mt-2">Return on time and in good condition.</p>
           </div>
         </div>
 
