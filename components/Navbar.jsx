@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   Leaf,
@@ -21,6 +22,7 @@ export default function Navbar({ onOpenChat }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const checkAuth = () => {
@@ -38,7 +40,7 @@ export default function Navbar({ onOpenChat }) {
         setUser(null);
       }
     };
-    
+
     checkAuth();
     window.addEventListener("storage", checkAuth);
     return () => window.removeEventListener("storage", checkAuth);
@@ -86,11 +88,11 @@ export default function Navbar({ onOpenChat }) {
 
         {/* NAV LINKS - Desktop */}
         <div className="hidden md:flex items-center gap-6 lg:gap-8 text-gray-600">
-          <NavItem icon={<Leaf size={18} />} label="Sustainability" link="/sustainability" />
-          <NavItem icon={<Home size={18} />} label="Rental Hub" link="/rental-hub" />
-          <NavItem icon={<Map size={18} />} label="Campus Map" link="/campus-map" />
-          <NavItem icon={<FileText size={18} />} label="Certificates" link="/certificates" />
-          <NavItem icon={<Info size={18} />} label="About" link="/about" />
+       <NavItem icon={<Leaf size={18} />} label="Sustainability" link="/sustainability" pathname={pathname} />
+<NavItem icon={<Home size={18} />} label="Rental Hub" link="/rental-hub" pathname={pathname} />
+<NavItem icon={<Map size={18} />} label="Campus Map" link="/campus-map" pathname={pathname} />
+<NavItem icon={<FileText size={18} />} label="Certificates" link="/certificates" pathname={pathname} />
+<NavItem icon={<Info size={18} />} label="About" link="/about" pathname={pathname} />
         </div>
 
         {/* RIGHT SECTION */}
@@ -118,7 +120,7 @@ export default function Navbar({ onOpenChat }) {
                   {getUserInitials()}
                 </div>
               </Link>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
@@ -194,7 +196,7 @@ export default function Navbar({ onOpenChat }) {
                   <Settings size={18} className="text-gray-500" />
                   <span className="font-medium">Settings</span>
                 </Link>
-                <button 
+                <button
                   onClick={() => { handleLogout(); setIsMenuOpen(false); }}
                   className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
                 >
@@ -228,11 +230,18 @@ export default function Navbar({ onOpenChat }) {
   );
 }
 
-function NavItem({ icon, label, link }) {
+function NavItem({ icon, label, link, pathname }) {
+  const isActive =
+    pathname === link || pathname.startsWith(link + "/");
+
   return (
     <Link
       href={link}
-      className="flex items-center gap-2 hover:text-emerald-600 transition-colors font-medium text-sm whitespace-nowrap"
+      className={`flex items-center gap-2 font-medium text-sm whitespace-nowrap transition-colors ${
+        isActive
+          ? "bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full"
+          : "text-gray-600 hover:text-emerald-600"
+      }`}
     >
       {icon}
       {label}
