@@ -1,63 +1,108 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import { ArrowLeft, Search, MapPin } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function BooksPage() {
   const [books, setBooks] = useState([]);
+  const [search, setSearch] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchBooks() {
       const res = await fetch("/api/listings");
       const data = await res.json();
-
-      console.log("ALL DATA:", data); //  DEBUG
-
-      //  ONLY BOOKS
-      const onlyBooks = data.filter(
-        (item) => item.type === "book"
-      );
-
-      console.log("FILTERED BOOKS:", onlyBooks); // 👈 DEBUG
-
+      const onlyBooks = data.filter((item) => item.type === "book");
       setBooks(onlyBooks);
     }
-
     fetchBooks();
   }, []);
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-10">
-      <h1 className="text-3xl font-bold mb-8">Books</h1>
+  const filteredBooks = useMemo(() => {
+    return books.filter((book) => {
+      const text = `${book.title || ""} ${book.author || ""}`.toLowerCase();
+      return text.includes(search.toLowerCase());
+    });
+  }, [books, search]);
 
-      {books.length === 0 ? (
-        <p>No books found</p>
-      ) : (
-        <div className="grid grid-cols-3 gap-6">
-          {books.map((book) => (
+  return (
+    <div className="min-h-screen bg-slate-50 px-6 py-10">
+      <div className="max-w-6xl mx-auto">
+
+        {/* TOP BAR */}
+        <div className="flex items-center justify-between gap-4">
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 font-semibold"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Rental Hub
+          </button>
+        </div>
+
+        {/* HEADER CARD (LIKE CALCULATOR) */}
+        <div className="mt-8 bg-white rounded-3xl border shadow-sm p-8">
+          <h1 className="text-3xl font-extrabold text-slate-900">
+            Available Books
+          </h1>
+
+          {/* SEARCH */}
+          <div className="relative mt-6">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-700" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by title or author..."
+              className="w-full pl-12 pr-4 py-4 rounded-2xl border"
+            />
+          </div>
+        </div>
+
+        {/* BOOK LIST */}
+        <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredBooks.map((book) => (
             <Link
               key={book._id}
               href={`/rental-hub/books/${book._id}`}
-              className="bg-white p-4 rounded-xl shadow hover:shadow-md"
+              className="bg-white rounded-3xl border shadow-sm overflow-hidden hover:shadow-md transition"
             >
               <img
                 src={book.image || "/placeholder.jpg"}
-                className="w-full h-40 object-cover rounded"
+                alt={book.title}
+                className="w-full h-44 object-cover"
               />
 
-              <h2 className="font-bold mt-3">{book.title}</h2>
+              <div className="p-6">
+                <p className="text-xs text-slate-500">
+                  {book.author || "Author"}
+                </p>
 
-              <p className="text-sm text-gray-500">
-                {book.author}
-              </p>
+                <h2 className="text-lg font-extrabold">
+                  {book.title || "Book"}
+                </h2>
 
-              <p className="text-green-600 font-semibold mt-2">
-                {book.rentPrice} QAR
-              </p>
+                <p className="text-blue-700 font-bold mt-2">
+  {book.rentPrice} QAR
+</p>
+
+<p className="text-sm text-slate-600 mt-2 flex items-center gap-2">
+  <MapPin className="w-4 h-4" />
+  {book.location || "Location not set"}
+</p>
+              </div>
             </Link>
           ))}
         </div>
-      )}
+
+        {/* EMPTY */}
+        {filteredBooks.length === 0 && (
+          <div className="mt-10 text-center">
+            No books found
+          </div>
+        )}
+      </div>
     </div>
   );
 }

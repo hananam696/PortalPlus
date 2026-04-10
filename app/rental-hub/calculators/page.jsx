@@ -64,13 +64,13 @@ export default function CalculatorsListPage() {
             Back to Rental Hub
           </Link>
 
-          <Link
+          {/* <Link
             href="/rental-hub/post/calculator"
             className="px-5 py-3 rounded-2xl bg-blue-600 text-white font-extrabold hover:bg-blue-700 transition inline-flex items-center gap-2"
           >
             <Plus size={18} />
             Post a Calculator
-          </Link>
+          </Link> */}
         </div>
 
         {/* HEADER */}
