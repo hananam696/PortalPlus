@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
-  
+
   // Pages where navbar should NOT show
   const hideNavbarPages = ["/login", "/signup"];
   const showNavbar = !hideNavbarPages.includes(pathname);
@@ -17,7 +17,7 @@ export default function RootLayout({ children }) {
       <body className="bg-gray-50">
         {showNavbar && <Navbar />}
         {children}
-        <Chatbot />
+        {showNavbar && <Chatbot />}
       </body>
     </html>
   );
