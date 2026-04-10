@@ -13,13 +13,17 @@ export default function CertificatesPage() {
   const [uploadStatus, setUploadStatus] = useState(null);
   const fileInputRef = useRef(null);
 
+  const getToken = () => localStorage.getItem('token');
+
   useEffect(() => {
     fetchCertificates();
   }, []);
 
   const fetchCertificates = async () => {
     try {
-      const res = await fetch('/api/certificates');
+      const res = await fetch('/api/certificates', {
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
       const data = await res.json();
       if (data.success) setCertificates(data.certificates);
     } catch (error) {
@@ -55,6 +59,7 @@ export default function CertificatesPage() {
     try {
       const response = await fetch("/api/upload-certificate", {
         method: "POST",
+        headers: { 'Authorization': `Bearer ${getToken()}` },
         body: formData,
       });
       const result = await response.json();
@@ -66,9 +71,9 @@ export default function CertificatesPage() {
           title: result.title,
           type: result.type,
           createdAt: result.date,
-          url: result.url,
-          fileName: result.originalName,
-          size: result.size,
+          fileUrl: result.url,
+          originalName: result.originalName,
+          fileSize: result.size,
         };
         setCertificates([newCert, ...certificates]);
         setUploadData({ title: "", type: "Workshop", file: null });
@@ -89,7 +94,10 @@ export default function CertificatesPage() {
     try {
       const res = await fetch('/api/certificates', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
         body: JSON.stringify({ id: cert.id }),
       });
       if (res.ok) setCertificates(certificates.filter(c => c.id !== cert.id));
@@ -99,16 +107,16 @@ export default function CertificatesPage() {
   };
 
   const handleView = (cert) => {
-    if (cert.url) window.open(cert.url, '_blank');
+    if (cert.fileUrl) window.open(cert.fileUrl, '_blank');
     else alert("File not available");
   };
 
   const handleDownload = (cert, e) => {
     e.stopPropagation();
-    if (!cert.url) return alert("File not available");
+    if (!cert.fileUrl) return alert("File not available");
     const link = document.createElement('a');
-    link.href = cert.url;
-    link.download = cert.fileName || 'certificate';
+    link.href = cert.fileUrl;
+    link.download = cert.originalName || 'certificate';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -128,7 +136,6 @@ export default function CertificatesPage() {
     <main className="min-h-screen p-8 bg-gradient-to-b from-blue-50 to-gray-50">
       <div className="max-w-7xl mx-auto">
 
-        {/* Header */}
         <div className="mb-10">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Certificate Repository</h1>
           <p className="text-gray-600 text-lg">Store and manage your certificates securely</p>
@@ -138,7 +145,6 @@ export default function CertificatesPage() {
           </div>
         </div>
 
-        {/* Search + Upload */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -159,7 +165,6 @@ export default function CertificatesPage() {
           </button>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-white p-5 rounded-2xl shadow-sm border">
             <p className="text-gray-500 text-sm">Total Certificates</p>
@@ -168,7 +173,7 @@ export default function CertificatesPage() {
           <div className="bg-white p-5 rounded-2xl shadow-sm border">
             <p className="text-gray-500 text-sm">Storage Used</p>
             <p className="text-3xl font-bold text-gray-800">
-              {formatFileSize(certificates.reduce((sum, c) => sum + (c.size || 0), 0))}
+              {formatFileSize(certificates.reduce((sum, c) => sum + (c.fileSize || 0), 0))}
             </p>
           </div>
           <div className="bg-white p-5 rounded-2xl shadow-sm border">
@@ -179,7 +184,6 @@ export default function CertificatesPage() {
           </div>
         </div>
 
-        {/* Loading state */}
         {loading && (
           <div className="text-center py-16">
             <Loader2 className="animate-spin mx-auto text-green-600 mb-4" size={40} />
@@ -187,7 +191,6 @@ export default function CertificatesPage() {
           </div>
         )}
 
-        {/* Certificates Grid */}
         {!loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filtered.map((cert) => (
@@ -216,7 +219,7 @@ export default function CertificatesPage() {
                     </div>
                     <div className="flex items-center text-sm text-gray-500">
                       <span className="w-24">Size:</span>
-                      <span className="font-medium">{formatFileSize(cert.size)}</span>
+                      <span className="font-medium">{formatFileSize(cert.fileSize)}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-500">
                       <span className="w-24">Storage:</span>
@@ -253,7 +256,6 @@ export default function CertificatesPage() {
           </div>
         )}
 
-        {/* Empty State */}
         {!loading && filtered.length === 0 && (
           <div className="text-center py-16">
             <div className="inline-flex items-center justify-center w-24 h-24 bg-gray-100 rounded-full mb-6">
@@ -277,7 +279,6 @@ export default function CertificatesPage() {
           </div>
         )}
 
-        {/* Upload Modal */}
         {showUploadModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">

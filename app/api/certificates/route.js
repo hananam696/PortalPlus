@@ -2,12 +2,21 @@ import { NextResponse } from 'next/server';
 import path from 'path';
 import Database from 'better-sqlite3';
 import fs from 'fs/promises';
+import jwt from 'jsonwebtoken';
 
-export async function GET() {
+export async function GET(req) {
   let db;
   try {
-    const dbPath = path.join(process.cwd(), 'data', 'portalplus.db');
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json({ success: true, certificates: [] });
+    }
 
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret123');
+    const userId = decoded.userId;
+
+    const dbPath = path.join(process.cwd(), 'data', 'portalplus.db');
     try {
       await fs.access(dbPath);
     } catch {
@@ -16,16 +25,15 @@ export async function GET() {
 
     db = new Database(dbPath);
 
-    // Make sure url column exists (safe migration)
     const cols = db.prepare("PRAGMA table_info(certificates)").all();
-    const hasUrl = cols.some(c => c.name === 'url');
+    const hasUrl = cols.some(c => c.name === 'fileUrl');
     if (!hasUrl) {
-      db.prepare("ALTER TABLE certificates ADD COLUMN url TEXT").run();
+      db.prepare("ALTER TABLE certificates ADD COLUMN fileUrl TEXT").run();
     }
 
     const certificates = db.prepare(`
-      SELECT * FROM certificates ORDER BY createdAt DESC
-    `).all();
+      SELECT * FROM certificates WHERE userId = ? ORDER BY createdAt DESC
+    `).all(userId);
 
     return NextResponse.json({ success: true, certificates });
 
@@ -40,15 +48,19 @@ export async function GET() {
 export async function DELETE(req) {
   let db;
   try {
+    const authHeader = req.headers.get('authorization');
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret123');
+    const userId = decoded.userId;
+
     const { id } = await req.json();
     const dbPath = path.join(process.cwd(), 'data', 'portalplus.db');
     db = new Database(dbPath);
 
-    const cert = db.prepare("SELECT * FROM certificates WHERE id = ?").get(id);
+    const cert = db.prepare("SELECT * FROM certificates WHERE id = ? AND userId = ?").get(id, userId);
     if (!cert) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    // Delete blob from Azure
-    if (cert.url) {
+    if (cert.fileName) {
       const { BlobServiceClient } = await import('@azure/storage-blob');
       const blobServiceClient = BlobServiceClient.fromConnectionString(
         process.env.AZURE_STORAGE_CONNECTION_STRING
@@ -56,12 +68,10 @@ export async function DELETE(req) {
       const containerClient = blobServiceClient.getContainerClient(
         process.env.AZURE_CONTAINER_NAME || 'certificates'
       );
-      // Extract blob name from URL
-      const blobName = cert.url.split('/').pop();
-      await containerClient.getBlockBlobClient(blobName).deleteIfExists();
+      await containerClient.getBlockBlobClient(cert.fileName).deleteIfExists();
     }
 
-    db.prepare("DELETE FROM certificates WHERE id = ?").run(id);
+    db.prepare("DELETE FROM certificates WHERE id = ? AND userId = ?").run(id, userId);
     return NextResponse.json({ success: true });
 
   } catch (error) {
