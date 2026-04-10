@@ -460,8 +460,7 @@ export default function PostItemPage() {
                 </label>
 
                 <p className="text-xs text-gray-400 text-center mt-2">
-                  📱 On mobile, you can take a photo directly with your camera.
-                  Image stored securely on Azure.
+                  🖼️ Upload an image of the item you want to post.
                 </p>
               </div>
             </div>

@@ -22,7 +22,7 @@ export default function BooksPage() {
 
   const filteredBooks = useMemo(() => {
     return books.filter((book) => {
-      const text = `${book.title || ""} ${book.author || ""}`.toLowerCase();
+      const text = `${book.title || ""} ${book.author || ""} ${book.location || ""} ${book.course || ""}`.toLowerCase();
       return text.includes(search.toLowerCase());
     });
   }, [books, search]);
@@ -54,7 +54,7 @@ export default function BooksPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by title or author..."
+              placeholder="Search by title, author or course code..."
               className="w-full pl-12 pr-4 py-4 rounded-2xl border"
             />
           </div>
