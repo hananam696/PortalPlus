@@ -2,23 +2,29 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle, XCircle, Clock, MessageCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, Clock, Bell } from "lucide-react";
 
 export default function IncomingRequestsPage() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   useEffect(() => {
     loadRequests();
+    const interval = setInterval(loadRequests, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const loadRequests = () => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const allRequests = JSON.parse(localStorage.getItem("rental_requests") || "[]");
     
-    // Filter requests where user is the owner
     const ownerRequests = allRequests.filter(req => req.ownerEmail === user.email);
     setRequests(ownerRequests);
+    
+    const pendingCount = ownerRequests.filter(req => req.status === "pending").length;
+    setNotificationCount(pendingCount);
+    
     setLoading(false);
   };
 
@@ -28,8 +34,14 @@ export default function IncomingRequestsPage() {
       req.id === requestId ? { ...req, status: newStatus } : req
     );
     localStorage.setItem("rental_requests", JSON.stringify(updatedRequests));
-    loadRequests();
+    
+    // Clear notification for this request
+    const notifiedRequests = JSON.parse(localStorage.getItem("notified_requests") || "[]");
+    const updatedNotified = notifiedRequests.filter(id => id !== requestId);
+    localStorage.setItem("notified_requests", JSON.stringify(updatedNotified));
+    
     alert(`Request ${newStatus === "approved" ? "approved" : "declined"}!`);
+    loadRequests();
   };
 
   const getStatusBadge = (status) => {
@@ -51,7 +63,16 @@ export default function IncomingRequestsPage() {
             <ArrowLeft size={16} />
             Back to Rental Hub
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Incoming Requests</h1>
+          
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-gray-900">Incoming Requests</h1>
+            {notificationCount > 0 && (
+              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 animate-pulse">
+                <Bell size={12} />
+                {notificationCount} new
+              </span>
+            )}
+          </div>
           <p className="text-gray-500 mt-1">Manage rental requests for your items</p>
         </div>
 
@@ -63,7 +84,7 @@ export default function IncomingRequestsPage() {
         ) : requests.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MessageCircle size={32} className="text-gray-400" />
+              <Bell size={32} className="text-gray-400" />
             </div>
             <h3 className="text-lg font-medium text-gray-700 mb-2">No incoming requests</h3>
             <p className="text-gray-500">When students request to rent your items, they'll appear here</p>
@@ -94,7 +115,7 @@ export default function IncomingRequestsPage() {
                       </div>
                       <div>
                         <span className="text-gray-500">Duration:</span>
-                        <p className="font-medium">{request.duration === "1week" ? "1 week" : request.duration === "2weeks" ? "2 weeks" : "3 weeks"}</p>
+                        <p className="font-medium">{request.weeks} week(s)</p>
                       </div>
                       <div>
                         <span className="text-gray-500">Total:</span>

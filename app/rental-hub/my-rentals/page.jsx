@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Calculator, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, BookOpen, Calculator, Clock, CheckCircle, XCircle, AlertCircle, Trash2 } from "lucide-react";
 
 export default function MyRentalsPage() {
   const [activeTab, setActiveTab] = useState("pending");
@@ -21,6 +21,18 @@ export default function MyRentalsPage() {
     const userRentals = allRequests.filter(req => req.renterEmail === user.email);
     setRentals(userRentals);
     setLoading(false);
+  };
+
+  // ✅ Cancel rental request
+  const handleCancelRequest = (requestId) => {
+    if (!confirm("Are you sure you want to cancel this rental request?")) return;
+    
+    const allRequests = JSON.parse(localStorage.getItem("rental_requests") || "[]");
+    const updatedRequests = allRequests.filter(req => req.id !== requestId);
+    localStorage.setItem("rental_requests", JSON.stringify(updatedRequests));
+    
+    loadRentals();
+    alert("Rental request cancelled successfully!");
   };
 
   const getStatusBadge = (status) => {
@@ -45,7 +57,6 @@ export default function MyRentalsPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-10">
       <div className="max-w-4xl mx-auto px-6">
-        {/* Header */}
         <div className="mb-8">
           <Link href="/rental-hub" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-4">
             <ArrowLeft size={16} />
@@ -130,7 +141,7 @@ export default function MyRentalsPage() {
                         </div>
                         <div>
                           <span className="text-gray-500">Duration:</span>
-                          <p className="font-medium">{rental.duration === "1week" ? "1 week" : rental.duration === "2weeks" ? "2 weeks" : "3 weeks"}</p>
+                          <p className="font-medium">{rental.weeks} week(s)</p>
                         </div>
                         <div>
                           <span className="text-gray-500">Total:</span>
@@ -146,13 +157,15 @@ export default function MyRentalsPage() {
                     </div>
                   </div>
                   
+                  {/* ✅ Cancel Request Button for pending requests */}
                   {rental.status === "pending" && (
                     <div className="mt-4 pt-4 border-t flex gap-3">
-                      <button className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 text-sm">
+                      <button
+                        onClick={() => handleCancelRequest(rental.id)}
+                        className="flex-1 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center justify-center gap-2"
+                      >
+                        <Trash2 size={16} />
                         Cancel Request
-                      </button>
-                      <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm">
-                        Message Owner
                       </button>
                     </div>
                   )}
