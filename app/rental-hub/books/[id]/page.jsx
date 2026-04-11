@@ -11,6 +11,7 @@ export default function BookDetailsPage() {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [isRentedOut, setIsRentedOut] = useState(false);
 
   useEffect(() => {
     async function fetchBook() {
@@ -28,6 +29,14 @@ export default function BookDetailsPage() {
         
         if (data && !data.error) {
           setBook(data);
+          
+          // Check if book is currently rented out
+          const allRequests = JSON.parse(localStorage.getItem("rental_requests") || "[]");
+          const activeRental = allRequests.find(
+            req => req.itemId === data._id && 
+            (req.status === "active" || req.status === "approved")
+          );
+          setIsRentedOut(!!activeRental);
         } else {
           setError(true);
         }
@@ -104,6 +113,12 @@ export default function BookDetailsPage() {
                 alt={book.title}
                 className="w-full h-[420px] object-cover"
               />
+              {/* Rented Out Badge */}
+              {isRentedOut && (
+                <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                  Currently Rented
+                </div>
+              )}
             </div>
 
             {/* DETAILS */}
@@ -134,13 +149,22 @@ export default function BookDetailsPage() {
                 <p className="text-2xl font-bold text-emerald-600">{book.rentPrice} QAR <span className="text-sm font-normal text-gray-500">/ week</span></p>
               </div>
 
-              {/* ✅ REQUEST TO RENT BUTTON - THIS IS WHAT YOU NEED */}
-              <Link
-                href={`/rental-hub/books/${book._id}/request`}
-                className="mt-8 w-full bg-emerald-600 text-white px-6 py-3.5 rounded-2xl font-bold hover:bg-emerald-700 transition text-center inline-block"
-              >
-                Request to Rent
-              </Link>
+              {/* REQUEST TO RENT BUTTON - Disabled if rented out */}
+              {isRentedOut ? (
+                <button
+                  disabled
+                  className="mt-8 w-full bg-gray-400 text-white px-6 py-3.5 rounded-2xl font-bold cursor-not-allowed"
+                >
+                  Currently Not Available
+                </button>
+              ) : (
+                <Link
+                  href={`/rental-hub/books/${book._id}/request`}
+                  className="mt-8 w-full bg-emerald-600 text-white px-6 py-3.5 rounded-2xl font-bold hover:bg-emerald-700 transition text-center inline-block"
+                >
+                  Request to Rent
+                </Link>
+              )}
             </div>
 
           </div>
