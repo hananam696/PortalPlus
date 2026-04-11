@@ -1,10 +1,9 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowRight, BookOpen, FileText, Home, Map } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
 import SearchBar from "../components/SearchBar";
 
 // ─────────────────────────────────────────────────────────────
@@ -220,7 +219,7 @@ export default function HomePage() {
               className="mb-16 text-center"
             >
               <p className="text-sm text-gray-500 max-w-xl mx-auto">
-                Test your knowledge through interactive quizzes
+                Advancing sustainability awareness, and success for IT students
               </p>
             </motion.div>
           </div>
