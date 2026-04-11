@@ -170,7 +170,7 @@ export default function Navbar({ onOpenChat }) {
                       <Inbox size={16} />
                       <span className="text-sm">Incoming Requests</span>
                       {pendingRequestsCount > 0 && (
-                        <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full animate-pulse">
                           {pendingRequestsCount}
                         </span>
                       )}
@@ -261,7 +261,7 @@ export default function Navbar({ onOpenChat }) {
                   <Inbox size={18} className="text-gray-500" />
                   <span className="font-medium">Incoming Requests</span>
                   {pendingRequestsCount > 0 && (
-                    <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                    <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full animate-pulse">
                       {pendingRequestsCount}
                     </span>
                   )}

@@ -11,7 +11,6 @@ export default function IncomingRequestsPage() {
 
   useEffect(() => {
     loadRequests();
-    // Check for new requests every 5 seconds
     const interval = setInterval(loadRequests, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -20,11 +19,9 @@ export default function IncomingRequestsPage() {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const allRequests = JSON.parse(localStorage.getItem("rental_requests") || "[]");
     
-    // Filter requests where user is the owner
     const ownerRequests = allRequests.filter(req => req.ownerEmail === user.email);
     setRequests(ownerRequests);
     
-    // Count pending requests (notifications)
     const pendingCount = ownerRequests.filter(req => req.status === "pending").length;
     setNotificationCount(pendingCount);
     
@@ -38,9 +35,12 @@ export default function IncomingRequestsPage() {
     );
     localStorage.setItem("rental_requests", JSON.stringify(updatedRequests));
     
-    // Show notification
-    alert(`Request ${newStatus === "approved" ? "approved" : "declined"}!`);
+    // Clear notification for this request
+    const notifiedRequests = JSON.parse(localStorage.getItem("notified_requests") || "[]");
+    const updatedNotified = notifiedRequests.filter(id => id !== requestId);
+    localStorage.setItem("notified_requests", JSON.stringify(updatedNotified));
     
+    alert(`Request ${newStatus === "approved" ? "approved" : "declined"}!`);
     loadRequests();
   };
 
@@ -67,7 +67,7 @@ export default function IncomingRequestsPage() {
           <div className="flex items-center gap-3">
             <h1 className="text-3xl font-bold text-gray-900">Incoming Requests</h1>
             {notificationCount > 0 && (
-              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 animate-pulse">
                 <Bell size={12} />
                 {notificationCount} new
               </span>
