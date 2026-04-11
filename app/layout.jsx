@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
-  
+
   // Pages where navbar should NOT show
   const hideNavbarPages = ["/login", "/signup"];
   const showNavbar = !hideNavbarPages.includes(pathname);

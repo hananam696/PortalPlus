@@ -6,7 +6,6 @@ import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { Filter, Leaf, Search, X } from "lucide-react";
 import { buildings, filterCategories } from "../lib/campusData";
 
-// Color per category
 const categoryColors = {
   academic:       { bg: "#3b82f6", text: "#fff" },
   sustainability: { bg: "#22c55e", text: "#fff" },
@@ -64,11 +63,11 @@ function CampusMapInner() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [highlightedId, setHighlightedId] = useState(null);
+  const [showHelp, setShowHelp] = useState(false);
   const transformRef = useRef(null);
   const mapContainerRef = useRef(null);
   const searchParams = useSearchParams();
 
-  // Auto-highlight + zoom when coming from a building page (?highlight=10)
   useEffect(() => {
     const highlightNumber = searchParams.get("highlight");
     if (!highlightNumber) return;
@@ -76,7 +75,6 @@ function CampusMapInner() {
     const building = buildings.find((b) => b.number === highlightNumber);
     if (!building) return;
 
-    // Small delay to let the map render first
     const timer = setTimeout(() => {
       setHighlightedId(building.id);
       setTimeout(() => setHighlightedId(null), 3500);
@@ -105,7 +103,6 @@ function CampusMapInner() {
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
 
-    // Normalize: lowercase + strip special chars like ' ' so "lh" matches "L'Hardy"
     const normalize = (str) =>
       str.toLowerCase().replace(/[^a-z0-9 ]/g, "");
 
@@ -119,7 +116,7 @@ function CampusMapInner() {
           (b.number && normalize(b.number).includes(q)) ||
           normalize(b.category).includes(q)
       )
-      .slice(0, 10); // raise limit so duplicates (Tim Hortons x2, L'Hardy x2) both show
+      .slice(0, 10);
   }, [searchQuery]);
 
   const filteredBuildings = useMemo(() => {
@@ -190,12 +187,54 @@ function CampusMapInner() {
           <div className="flex flex-col md:flex-row md:items-end gap-6">
 
             <div className="flex-1">
-              <h1 className="text-5xl font-black bg-gradient-to-r from-white via-emerald-200 to-white bg-clip-text text-transparent">
-                Campus Map
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-5xl font-black bg-gradient-to-r from-white via-emerald-200 to-white bg-clip-text text-transparent">
+                  Campus Map
+                </h1>
+                {/* <button
+                  onClick={() => setShowHelp(!showHelp)}
+                  className="w-8 h-8 rounded-full bg-slate-700 border border-slate-600 text-slate-400 hover:text-white hover:bg-slate-600 transition text-sm font-bold"
+                >
+                  ?
+                </button> */}
+                <button
+  onClick={() => setShowHelp(!showHelp)}
+  title="How to use the map"
+  className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-700 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-600 transition text-sm font-medium"
+>
+  ❓ How to Use
+</button>
+              </div>
+
               <p className="mt-3 text-slate-300 text-lg max-w-2xl">
-                Drag to move the map, zoom in/out, and hover markers to explore campus locations.
+                Explore UDST's campus interactively — hover over any building to see quick info. Head to Building 10 to discover CCIT's programmes and explore all labs in detail, each with sustainability highlights and real research. 🗺️
               </p>
+
+              {showHelp && (
+                <div className="mt-4 bg-slate-800 border border-slate-600 rounded-2xl p-5 max-w-lg">
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">How to use</p>
+                  <div className="space-y-3">
+                    {[
+                      { n: "1", t: "Drag to explore", d: "Click and drag the map to pan around campus." },
+                      { n: "2", t: "Zoom in / out", d: "Use + / − buttons, scroll wheel, or pinch on mobile. Hit ⟳ to reset." },
+                      { n: "3", t: "Hover a pin", d: "See a quick preview card with the building name and image." },
+                      { n: "4", t: "Click a pin", d: "Opens Building 10's full page with all 5 labs and sustainability info." },
+                      { n: "5", t: "Filter", d: "Use the filter bar to show only certain categories." },
+                      { n: "6", t: "Search", d: "Type a name or number — the map zooms to that pin automatically." },
+                    ].map((s) => (
+                      <div key={s.n} className="flex gap-3 items-start">
+                        <div className="w-6 h-6 min-w-[24px] rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-center justify-center">
+                          {s.n}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-white">{s.t}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">{s.d}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* SEARCH BAR */}
@@ -230,11 +269,9 @@ function CampusMapInner() {
               {/* DROPDOWN */}
               {searchFocused && searchResults.length > 0 && (
                 <div className="absolute top-full mt-2 w-full bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-[200] overflow-hidden">
-                  {searchResults.map((b, idx) => {
+                  {searchResults.map((b) => {
                     const { bg } = getCategoryColor(b.category);
-                    // Check if another result shares the same name (duplicate)
                     const isDuplicate = searchResults.filter((r) => r.name === b.name).length > 1;
-                    // Build a location hint: just building number or id
                     const locationHint = isDuplicate
                       ? (b.number ? `Building ${b.number}` : `ID: ${b.id}`)
                       : null;
@@ -340,7 +377,6 @@ function CampusMapInner() {
             >
               {({ zoomIn, zoomOut, resetTransform }) => (
                 <>
-
                   {/* ZOOM BUTTONS */}
                   <div className="absolute right-4 top-4 flex flex-col gap-2 z-50">
                     <button
@@ -407,7 +443,6 @@ function CampusMapInner() {
                               onClick={() => handleBuildingClick(building)}
                               className="relative flex flex-col items-center"
                             >
-                              {/* Bouncing arrow when highlighted */}
                               {highlightedId === building.id && (
                                 <div
                                   className="absolute flex flex-col items-center"
@@ -442,7 +477,6 @@ function CampusMapInner() {
 
                     </div>
                   </TransformComponent>
-
                 </>
               )}
             </TransformWrapper>

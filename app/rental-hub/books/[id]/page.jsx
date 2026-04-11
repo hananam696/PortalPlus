@@ -8,23 +8,65 @@ import { useEffect, useState } from "react";
 export default function BookDetailsPage() {
   const params = useParams();
   const router = useRouter();
-
   const [book, setBook] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     async function fetchBook() {
-      const res = await fetch("/api/listings");
-      const data = await res.json();
-      const found = data.find((item) => item._id.toString() === params.id);
-      setBook(found);
+      try {
+        console.log("Fetching book with ID:", params.id);
+        
+        const res = await fetch(`/api/listings/${params.id}`);
+        
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        
+        const data = await res.json();
+        console.log("Book data:", data);
+        
+        if (data && !data.error) {
+          setBook(data);
+        } else {
+          setError(true);
+        }
+      } catch (err) {
+        console.error("Error fetching book:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
     }
-    fetchBook();
+    
+    if (params.id) {
+      fetchBook();
+    }
   }, [params.id]);
 
-  if (!book) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-lg font-semibold">Loading...</p>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (error || !book) {
+    return (
+      <div className="min-h-screen bg-slate-50 px-6 py-20">
+        <div className="max-w-3xl mx-auto bg-white border rounded-3xl p-10 shadow-sm text-center">
+          <h1 className="text-2xl font-bold text-slate-900">Book not found</h1>
+          <p className="text-slate-600 mt-2">
+            This book does not exist or was removed.
+          </p>
+          <Link
+            href="/rental-hub/books"
+            className="inline-flex mt-6 px-5 py-3 rounded-2xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition"
+          >
+            Go to Books List
+          </Link>
+        </div>
       </div>
     );
   }
@@ -74,7 +116,7 @@ export default function BookDetailsPage() {
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="px-3 py-1 rounded-full bg-slate-100 text-sm">
-                  {book.department}
+                  {book.course || book.department || "General"}
                 </span>
                 <span className="px-3 py-1 rounded-full bg-slate-100 text-sm">
                   Condition: {book.condition}
@@ -84,13 +126,21 @@ export default function BookDetailsPage() {
               {/* LOCATION */}
               <div className="mt-6 flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-emerald-700" />
-                <span>{book.location}</span>
+                <span>{book.location || "UDST Main Campus - Library"}</span>
               </div>
 
               {/* PRICE */}
               <div className="mt-6">
-                <p className="text-lg font-bold">{book.rentPrice} QAR / week</p>
+                <p className="text-2xl font-bold text-emerald-600">{book.rentPrice} QAR <span className="text-sm font-normal text-gray-500">/ week</span></p>
               </div>
+
+              {/* ✅ REQUEST TO RENT BUTTON - THIS IS WHAT YOU NEED */}
+              <Link
+                href={`/rental-hub/books/${book._id}/request`}
+                className="mt-8 w-full bg-emerald-600 text-white px-6 py-3.5 rounded-2xl font-bold hover:bg-emerald-700 transition text-center inline-block"
+              >
+                Request to Rent
+              </Link>
             </div>
 
           </div>
