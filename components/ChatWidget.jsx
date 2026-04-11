@@ -31,12 +31,39 @@ const FOLLOW_UPS = {
 };
 
 // ── WELCOME MESSAGE ───────────────────────────────────────────
-const WELCOME_MSG = {
-  role: "assistant",
-  content: "Hey! I'm **Sage** 🌿 — your sustainability guide on PortalPlus.\n\nI can give you daily eco tips, estimate your carbon footprint, quiz you on green topics, and answer any sustainability questions.\n\nPick a quick action above or ask me anything!",
-  followUps: [],
-  id: "welcome",
-};
+// Replace the static WELCOME_MSG with this function
+function getWelcomeMessage() {
+  if (typeof window === "undefined") return "Hey! I'm Sage 🌿 — your sustainability guide on PortalPlus. Ask me anything!";
+  
+  const path = window.location.pathname;
+  
+  // Check learn progress from localStorage
+  const completedLevels = Array.from({ length: 5 }, (_, i) => 
+    localStorage.getItem(`pp_l${i+1}_passed`) === "true"
+  );
+  const completedCount = completedLevels.filter(Boolean).length;
+  const nextLevel = completedLevels.findIndex(p => !p) + 1;
+
+  if (path.startsWith("/learn")) {
+    if (completedCount === 0) {
+      return "Starting Level 1? 🌱 Ask me anything about sustainability concepts covered here — I can explain, quiz you, or give examples.";
+    }
+    if (completedCount === 5) {
+      return "You've completed all 5 levels! 🚀 Want to test your knowledge with a quiz, or explore real-world sustainability topics?";
+    }
+    return `You're on Level ${nextLevel} — nice progress! 🌿 Ask me anything about the topics or want a quick quiz to prepare?`;
+  }
+
+  if (path.startsWith("/sustainability") || path.startsWith("/dashboard")) {
+    const points = parseInt(localStorage.getItem("pp_eco_points") || "0");
+    if (completedCount === 0) {
+      return "Your eco dashboard is empty — start Level 1 in the Learn module to earn your first points! 🌱";
+    }
+    return `You have ${completedCount}/5 levels done 🌍 Ask me how to earn more eco points or what your footprint looks like.`;
+  }
+
+  return "Hey! I'm **Sage** 🌿 — your sustainability guide on PortalPlus.\n\nI can give you daily eco tips, estimate your carbon footprint, quiz you on green topics, and answer any sustainability questions.\n\nPick a quick action above or ask me anything!";
+}
 
 // ── DETECT RESPONSE TYPE ─────────────────────────────────────
 function detectResponseType(text) {
@@ -90,7 +117,12 @@ export default function ChatWidget({ onOpenChange, externalOpen }) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState([WELCOME_MSG]);
+const [messages, setMessages] = useState(() => [{
+  role: "assistant",
+  content: getWelcomeMessage(),
+  followUps: [],
+  id: "welcome",
+}]);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 

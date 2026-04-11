@@ -1,25 +1,15 @@
 "use client";
-        <Link href="/sustainability" className="flex-1">
-          <button className="w-full bg-gradient-to-r from-rose-500 to-pink-500 text-white font-medium py-3 rounded-xl transition-all text-sm hover:opacity-90 shadow-md">
-            Go to Sustainability →
-          </button>
-        </Link>
+
+import ProtectedRoute from "../../components/ProtectedRoute";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
-  ArrowLeft,
-  ArrowRight,
-  CheckCircle,
-  XCircle,
-  BookOpen,
-  Trophy,
-  Lock,
-  Clock,
-  RotateCcw,
-  Star,
-  ChevronRight,
+  ArrowLeft, ArrowRight, CheckCircle, XCircle,
+  BookOpen, Trophy, Lock, Clock, RotateCcw, ChevronRight,
 } from "lucide-react";
+import { writeLeaderboardEntry } from "../../utils/leaderboard";
+import { calculateEcoPoints, getCurrentEcoTier, calculateAchievements } from "../../utils/gamification";
 
 // ─────────────────────────────────────────────────────────────
 // LEVEL & ACTION_PROMPTS 
@@ -1564,6 +1554,9 @@ const ALL_TOPICS = [
 // ─────────────────────────────────────────────────────────────
 // READING TIMER HOOK
 // ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// READING TIMER HOOK
+// ─────────────────────────────────────────────────────────────
 
 function useReadingTimer(durationSeconds, active) {
   const [elapsed, setElapsed] = useState(0);
@@ -1615,7 +1608,6 @@ function LevelSelectScreen({ unlockedUpTo, levelScores, onSelectLevel }) {
 
       <div className="space-y-4">
         {LEVELS.map((level, idx) => {
-          const isUnlocked = idx < unlockedUpTo;
           const isNext = idx === unlockedUpTo;
           const isLocked = idx > unlockedUpTo;
           const score = levelScores[idx];
@@ -1634,17 +1626,13 @@ function LevelSelectScreen({ unlockedUpTo, levelScores, onSelectLevel }) {
                 className={`w-full text-left rounded-2xl border p-5 transition-all duration-200 ${
                   isLocked
                     ? "bg-gray-50 border-gray-200 opacity-60 cursor-not-allowed"
-                    : isNext
-                    ? `bg-gradient-to-br ${level.bgColor} ${level.borderColor} hover:shadow-lg cursor-pointer`
-                    : `bg-gradient-to-br ${level.bgColor} ${level.borderColor} hover:shadow-md cursor-pointer`
+                    : `bg-gradient-to-br ${level.bgColor} ${level.borderColor} hover:shadow-lg cursor-pointer`
                 }`}
               >
                 <div className="flex items-center gap-4">
                   <div
                     className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${
-                      isLocked
-                        ? "bg-gray-200"
-                        : `bg-gradient-to-br ${level.color}`
+                      isLocked ? "bg-gray-200" : `bg-gradient-to-br ${level.color}`
                     }`}
                   >
                     {isLocked ? <Lock size={18} className="text-gray-400" /> : level.icon}
@@ -1674,14 +1662,12 @@ function LevelSelectScreen({ unlockedUpTo, levelScores, onSelectLevel }) {
                     {completed && (
                       <div className="text-right">
                         <p className="text-lg font-bold text-gray-900">
-                          {Math.round((score / ALL_TOPICS[idx].length) * 100)}%
+                          {Math.round((score.filter(Boolean).length / ALL_TOPICS[idx].length) * 100)}%
                         </p>
                         <p className="text-xs text-gray-400">score</p>
                       </div>
                     )}
-                    {!isLocked && (
-                      <ChevronRight size={18} className="text-gray-400" />
-                    )}
+                    {!isLocked && <ChevronRight size={18} className="text-gray-400" />}
                   </div>
                 </div>
 
@@ -1708,9 +1694,7 @@ function ProgressBar({ done, total, color = "bg-emerald-500" }) {
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-1">
-        <span className="text-xs text-gray-500">
-          {done} of {total} slides read
-        </span>
+        <span className="text-xs text-gray-500">{done} of {total} slides read</span>
         <span className="text-xs font-medium text-gray-600">{pct}%</span>
       </div>
       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -1726,10 +1710,10 @@ function ProgressBar({ done, total, color = "bg-emerald-500" }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// SLIDE CARD WITH READING TIMER
+// SLIDE CARD
 // ─────────────────────────────────────────────────────────────
 
-function SlideCard({ topic, topicIndex, totalTopics, level, onContinue, allRead }) {
+function SlideCard({ topic, topicIndex, totalTopics, level, onContinue }) {
   const { progress, ready } = useReadingTimer(level.readTimePerSlide, true);
   const accentGradient = level.color;
 
@@ -1772,7 +1756,6 @@ function SlideCard({ topic, topicIndex, totalTopics, level, onContinue, allRead 
         </div>
       </div>
 
-      {/* Reading timer */}
       <div className="mb-3">
         <div className="flex items-center gap-2 mb-1">
           <Clock size={12} className="text-gray-400" />
@@ -1808,7 +1791,7 @@ function SlideCard({ topic, topicIndex, totalTopics, level, onContinue, allRead 
 }
 
 // ─────────────────────────────────────────────────────────────
-// QUIZ SESSION (all 10 questions for a level)
+// QUIZ SESSION
 // ─────────────────────────────────────────────────────────────
 
 function QuizSession({ topics, level, onComplete }) {
@@ -1856,7 +1839,6 @@ function QuizSession({ topics, level, onComplete }) {
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.35 }}
     >
-      {/* Quiz progress */}
       <div className="mb-6">
         <div className="flex justify-between text-xs text-gray-500 mb-1">
           <span>Question {questionIndex + 1} of {topics.length}</span>
@@ -1986,117 +1968,40 @@ function LevelResultsScreen({ levelIndex, answers, onContinue, onRetry }) {
                 : "bg-red-50 border-red-200 text-red-600"
             }`}
           >
-            {answers[i] ? (
-              <CheckCircle size={12} className="flex-shrink-0" />
-            ) : (
-              <XCircle size={12} className="flex-shrink-0" />
-            )}
+            {answers[i]
+              ? <CheckCircle size={12} className="flex-shrink-0" />
+              : <XCircle size={12} className="flex-shrink-0" />}
             <span className="truncate">{t.title}</span>
           </div>
         ))}
       </div>
 
-      <div className="flex gap-3">
-        {!passed && (
-          <button
-            onClick={onRetry}
-            className="flex-1 border border-gray-200 hover:border-gray-300 text-gray-700 font-medium py-3 rounded-xl transition-colors text-sm flex items-center justify-center gap-2"
-          >
-            <RotateCcw size={14} /> Retry quiz
-          </button>
-        )}
-        <button
-          onClick={onContinue}
-          className={`font-medium py-3 rounded-xl transition-all text-sm flex items-center justify-center gap-2 bg-gradient-to-r ${level.color} text-white hover:opacity-90 shadow-md ${passed ? "flex-1" : "flex-1"}`}
-        >
-          {passed
-            ? isLastLevel
-              ? <><Trophy size={16} /> Complete</>
-              : <>Next level <ArrowRight size={16} /></>
-            : <>Back to levels <ArrowLeft size={16} /></>
-          }
+<div className="flex gap-3">
+  {passed ? (
+    <>
+      <Link href="/sustainability" className="flex-1">
+        <button className="w-full border-2 border-emerald-500 text-emerald-700 font-medium py-3 rounded-xl transition-all text-sm hover:bg-emerald-50">
+          View Dashboard
         </button>
-      </div>
-    </motion.div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// PLEDGE SCREEN
-// ─────────────────────────────────────────────────────────────
-
-function PledgeScreen({ levelIndex, pledgeText, actionText, onPledgeChange, onActionChange, onSubmit }) {
-  const level = LEVELS[levelIndex];
-  const topics = ALL_TOPICS[levelIndex];
-  const actionPrompt = ACTION_PROMPTS[levelIndex] || "Share your action";
-  const handleSkip = () => {
-    onSubmit(null);
-  };
-
-  const handleSubmit = () => {
-    onSubmit({
-      pledge: pledgeText,
-      action: actionText,
-    });
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.97 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4 }}
-    >
-      <div className={`bg-gradient-to-br ${level.bgColor} border ${level.borderColor} rounded-2xl p-8 mb-6`}>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Before we award your badge...</h2>
-        
-        <div className="space-y-6">
-          {/* Pledge Input (Optional) */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-2">
-              📝 Your pledge (optional, +25 points):
-            </label>
-            <textarea
-              value={pledgeText}
-              onChange={(e) => onPledgeChange(e.target.value)}
-              placeholder="I will... / I commit to..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm resize-none"
-              rows={3}
-            />
-            <p className="text-xs text-gray-500 mt-1">Example: "I will check WebsiteCarbon.com on every project I make."</p>
-          </div>
-
-          {/* Action Input (Optional) */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-2">
-              🔬 Your action (optional):
-            </label>
-            <textarea
-              value={actionText}
-              onChange={(e) => onActionChange(e.target.value)}
-              placeholder={actionPrompt}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm resize-none"
-              rows={2}
-            />
-            <p className="text-xs text-gray-500 mt-1">What you observed: {actionPrompt}</p>
-          </div>
-
-          {/* Buttons */}
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={handleSkip}
-              className="flex-1 border border-gray-200 hover:border-gray-300 text-gray-700 font-medium py-3 rounded-xl transition-colors text-sm"
-            >
-              Skip
-            </button>
-            <button
-              onClick={handleSubmit}
-              className={`flex-1 font-medium py-3 rounded-xl transition-all text-sm bg-gradient-to-r ${level.color} text-white hover:opacity-90 shadow-md`}
-            >
-              Submit & Continue
-            </button>
-          </div>
-        </div>
-      </div>
+      </Link>
+      <button
+        onClick={onContinue}
+        className={`flex-1 font-medium py-3 rounded-xl transition-all text-sm flex items-center justify-center gap-2 bg-gradient-to-r ${level.color} text-white hover:opacity-90 shadow-md`}
+      >
+        {isLastLevel ? <><Trophy size={16} /> Complete</> : <>Next Level <ArrowRight size={16} /></>}
+      </button>
+    </>
+  ) : (
+    <>
+      <button onClick={onRetry} className="flex-1 border border-gray-200 hover:border-gray-300 text-gray-700 font-medium py-3 rounded-xl transition-colors text-sm flex items-center justify-center gap-2">
+        <RotateCcw size={14} /> Retry quiz
+      </button>
+      <button onClick={onContinue} className={`flex-1 font-medium py-3 rounded-xl transition-all text-sm flex items-center justify-center gap-2 bg-gradient-to-r ${level.color} text-white hover:opacity-90 shadow-md`}>
+        Back to levels <ArrowLeft size={16} />
+      </button>
+    </>
+  )}
+</div>
     </motion.div>
   );
 }
@@ -2135,10 +2040,10 @@ function ProgrammeCompleteScreen({ levelScores, onRestart }) {
 
       <div className="space-y-3 mb-6">
         {LEVELS.map((level, i) => {
-          const answers = levelScores[i] || [];
-          const score = answers.filter(Boolean).length;
-          const total = ALL_TOPICS[i].length;
-          const pct = Math.round((score / total) * 100);
+          const ans = levelScores[i] || [];
+          const sc  = ans.filter(Boolean).length;
+          const tot = ALL_TOPICS[i].length;
+          const pct = Math.round((sc / tot) * 100);
           return (
             <div key={level.id} className={`flex items-center gap-4 p-3 rounded-xl bg-gradient-to-br ${level.bgColor} border ${level.borderColor}`}>
               <span className="text-xl">{level.icon}</span>
@@ -2164,9 +2069,9 @@ function ProgrammeCompleteScreen({ levelScores, onRestart }) {
           <RotateCcw size={14} /> Start again
         </button>
         <Link href="/sustainability" className="flex-1">
-          <button className="w-full bg-gradient-to-r from-rose-500 to-pink-500 text-white font-medium py-3 rounded-xl transition-all text-sm hover:opacity-90 shadow-md">
-            Go to Sustainability →
-          </button>
+<button className="w-full bg-gradient-to-r from-rose-500 to-pink-500 text-white font-medium py-3 rounded-xl transition-all text-sm hover:opacity-90 shadow-md">
+  View My Eco Dashboard
+</button>
         </Link>
       </div>
     </motion.div>
@@ -2177,22 +2082,13 @@ function ProgrammeCompleteScreen({ levelScores, onRestart }) {
 // MAIN PAGE
 // ─────────────────────────────────────────────────────────────
 
-export default function LearnPage() {
-  // levelScores[i] = array of boolean answers for level i, or undefined if not attempted
+function LearnPage() {
   const [levelScores, setLevelScores] = useState(Array(LEVELS.length).fill(undefined));
-  // unlockedUpTo = how many levels are unlocked (0-indexed: 0 means only level 0 is available)
 const [unlockedUpTo, setUnlockedUpTo] = useState(LEVELS.length - 1);
-
-  // Screen states
-    const [screen, setScreen] = useState("pledge");
-  // const [screen, setScreen] = useState("levelSelect"); 
-  // "levelSelect" | "slides" | "quiz" | "levelResults" | "pledge" | "programmeComplete"
-
+  const [screen, setScreen] = useState("levelSelect");
   const [activeLevel, setActiveLevel] = useState(0);
   const [slideIndex, setSlideIndex] = useState(0);
   const [currentAnswers, setCurrentAnswers] = useState([]);
-  const [pledgeText, setPledgeText] = useState("");
-  const [actionText, setActionText] = useState("");
 
   const level = LEVELS[activeLevel];
   const topics = ALL_TOPICS[activeLevel];
@@ -2222,66 +2118,66 @@ const [unlockedUpTo, setUnlockedUpTo] = useState(LEVELS.length - 1);
     setLevelScores(newScores);
     setCurrentAnswers(answers);
 
-    // Write to localStorage
+    const storedUser = typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("user") || "null")
+      : null;
+    const userPrefix = storedUser?.id ? `u_${storedUser.id}_` : "";
+
     if (typeof window !== "undefined") {
       const levelNum = activeLevel + 1;
-      localStorage.setItem(`pp_l${levelNum}_passed`, passed ? "true" : "false");
-      localStorage.setItem(`pp_l${levelNum}_score`, score.toString());
-      localStorage.setItem(`pp_l${levelNum}_date`, new Date().toLocaleDateString());
-      
-      // Track previous scores for growth mindset badge
-      const prevScores = JSON.parse(localStorage.getItem("pp_prev_scores") || "{}");
+      localStorage.setItem(`${userPrefix}pp_l${levelNum}_passed`, passed ? "true" : "false");
+      localStorage.setItem(`${userPrefix}pp_l${levelNum}_score`,  score.toString());
+      localStorage.setItem(`${userPrefix}pp_l${levelNum}_total`,  topics.length.toString());
+      localStorage.setItem(`${userPrefix}pp_l${levelNum}_date`,   new Date().toLocaleDateString());
+
+      const prevScores = JSON.parse(localStorage.getItem(`${userPrefix}pp_prev_scores`) || "{}");
       if (!prevScores[levelNum] || score > parseInt(prevScores[levelNum])) {
         prevScores[levelNum] = score;
       }
-      localStorage.setItem("pp_prev_scores", JSON.stringify(prevScores));
+      localStorage.setItem(`${userPrefix}pp_prev_scores`, JSON.stringify(prevScores));
+
+      const optedIn = localStorage.getItem(`${userPrefix}pp_leaderboard_optin`) === "true";
+      if (optedIn) {
+        const uid   = localStorage.getItem(`${userPrefix}pp_uid`) || "anon_" + Date.now();
+        const dName = localStorage.getItem(`${userPrefix}pp_display_name`) || "Anonymous";
+        const allData = Object.keys(localStorage).reduce((acc, k) => {
+          if (k.startsWith(`${userPrefix}pp_`)) {
+            acc[k.replace(userPrefix, "")] = localStorage.getItem(k);
+          }
+          return acc;
+        }, {});
+        const pts      = calculateEcoPoints(allData);
+        const tierObj  = getCurrentEcoTier(pts);
+        const lvlsDone = Array.from({ length: 5 }, (_, i) =>
+          allData[`pp_l${i + 1}_passed`] === "true"
+        ).filter(Boolean).length;
+        const ach = calculateAchievements(allData);
+        const bdg = Object.values(ach).filter(Boolean).length + lvlsDone;
+        writeLeaderboardEntry({
+          uid, displayName: dName, ecoPoints: pts,
+          tierName: tierObj?.name || "Seedling",
+          levelsCompleted: lvlsDone, badgeCount: bdg,
+        });
+      }
     }
 
     if (passed && activeLevel + 1 > unlockedUpTo) {
       setUnlockedUpTo(Math.min(activeLevel + 1, LEVELS.length - 1));
     }
 
-    // Always go to results screen first
     setScreen("levelResults");
   };
 
   const handleLevelResultsContinue = () => {
-    const answers = currentAnswers;
-    const score = answers.filter(Boolean).length;
-    const pct = Math.round((score / topics.length) * 100);
+    const score = currentAnswers.filter(Boolean).length;
+    const pct   = Math.round((score / topics.length) * 100);
     const passed = pct >= level.passMark;
-    // If passed, go to pledge screen; otherwise back to level select
-    if (passed) {
-      setScreen("pledge");
-    } else {
-      setScreen("levelSelect");
-    }
-  };
 
-  const handlePledgeSubmit = (submitted) => {
-    // submitted = { pledge: string, action: string } or null
-    if (submitted && (submitted.pledge || submitted.action)) {
-      if (typeof window !== "undefined") {
-        const levelNum = activeLevel + 1;
-        if (submitted.pledge) {
-          localStorage.setItem(`pp_l${levelNum}_pledge`, submitted.pledge);
-        }
-        if (submitted.action) {
-          localStorage.setItem(`pp_l${levelNum}_action`, submitted.action);
-        }
-      }
-    }
-
-    // Continue to next level or completion
-    if (activeLevel === LEVELS.length - 1) {
+    if (passed && activeLevel === LEVELS.length - 1) {
       setScreen("programmeComplete");
     } else {
       setScreen("levelSelect");
     }
-    
-    // Reset pledge form
-    setPledgeText("");
-    setActionText("");
   };
 
   const handleRetryQuiz = () => {
@@ -2301,119 +2197,120 @@ const [unlockedUpTo, setUnlockedUpTo] = useState(LEVELS.length - 1);
   const currentLevelObj = LEVELS[activeLevel];
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="max-w-2xl mx-auto px-4 py-10">
+  <main className="min-h-screen" style={{ background: "linear-gradient(160deg, #022c22 0%, #064e3b 35%, #065f46 65%, #0f766e 100%)" }}>
+    <div className="max-w-2xl mx-auto px-4 py-10">
 
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          {screen === "levelSelect" ? (
-            <Link href="/" className="text-gray-400 hover:text-gray-600 transition-colors p-1">
-              <ArrowLeft size={20} />
-            </Link>
-          ) : (
-            <button
-              onClick={() => setScreen("levelSelect")}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
-            >
-              <ArrowLeft size={20} />
-            </button>
-          )}
-          <div className="flex-1">
-            <h1 className="text-lg font-semibold text-gray-900">Sustainability in IT</h1>
-            <p className="text-xs text-gray-500">5 levels · 50 lessons · 50 questions</p>
-          </div>
-          <div className="flex items-center gap-1">
-            {levelScores.map((s, i) => (
-              <div
-                key={i}
-                className={`w-2 h-2 rounded-full ${
-                  s !== undefined && s.filter(Boolean).length / ALL_TOPICS[i].length >= LEVELS[i].passMark / 100
-                    ? `bg-gradient-to-r ${LEVELS[i].color}`
-                    : s !== undefined
-                    ? "bg-red-300"
-                    : i <= unlockedUpTo
-                    ? "bg-gray-300"
-                    : "bg-gray-100"
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Slide progress indicator when in slides mode */}
-        {screen === "slides" && (
-          <div className="mb-6">
-            <ProgressBar
-              done={slideIndex}
-              total={topics.length}
-              color={`bg-gradient-to-r ${currentLevelObj.color}`}
-            />
-          </div>
+      {/* Header */}
+      {process.env.NODE_ENV === 'development' && (
+  <button
+    onClick={() => setScreen("quiz")}
+    className="text-xs text-green-300 hover:text-white border border-green-700 px-2 py-0.5 rounded transition-colors"
+  >
+    Skip to quiz
+  </button>
+)}
+      <div className="flex items-center gap-3 mb-8">
+        {screen === "levelSelect" ? (
+          <Link href="/" className="text-green-300 hover:text-white transition-colors p-1">
+            <ArrowLeft size={20} />
+          </Link>
+        ) : (
+          <button
+            onClick={() => setScreen("levelSelect")}
+            className="text-green-300 hover:text-white transition-colors p-1"
+          >
+            <ArrowLeft size={20} />
+          </button>
         )}
-
-        {/* Content */}
-        <AnimatePresence mode="wait">
-          {screen === "levelSelect" && (
-            <LevelSelectScreen
-              key="levelSelect"
-              unlockedUpTo={unlockedUpTo}
-              levelScores={levelScores}
-              onSelectLevel={handleSelectLevel}
+        <div className="flex-1">
+          <h1 className="text-lg font-semibold text-white">Sustainability in IT</h1>
+          <p className="text-xs text-green-300">5 levels · 50 lessons · 50 questions</p>
+        </div>
+        <div className="flex items-center gap-1">
+          {levelScores.map((s, i) => (
+            <div
+              key={i}
+              className={`w-2 h-2 rounded-full ${
+                s !== undefined && s.filter(Boolean).length / ALL_TOPICS[i].length >= LEVELS[i].passMark / 100
+                  ? "bg-emerald-400"
+                  : s !== undefined
+                  ? "bg-red-400"
+                  : i <= unlockedUpTo
+                  ? "bg-green-600"
+                  : "bg-green-900"
+              }`}
             />
-          )}
-
-          {screen === "slides" && (
-            <SlideCard
-              key={`slide-${activeLevel}-${slideIndex}`}
-              topic={topics[slideIndex]}
-              topicIndex={slideIndex}
-              totalTopics={topics.length}
-              level={currentLevelObj}
-              onContinue={handleSlideNext}
-            />
-          )}
-
-          {screen === "quiz" && (
-            <QuizSession
-              key={`quiz-${activeLevel}`}
-              topics={topics}
-              level={currentLevelObj}
-              onComplete={handleQuizComplete}
-            />
-          )}
-
-          {screen === "levelResults" && (
-            <LevelResultsScreen
-              key="levelResults"
-              levelIndex={activeLevel}
-              answers={currentAnswers}
-              onContinue={handleLevelResultsContinue}
-              onRetry={handleRetryQuiz}
-            />
-          )}
-
-          {screen === "pledge" && (
-            <PledgeScreen
-              key="pledge"
-              levelIndex={activeLevel}
-              pledgeText={pledgeText}
-              actionText={actionText}
-              onPledgeChange={setPledgeText}
-              onActionChange={setActionText}
-              onSubmit={handlePledgeSubmit}
-            />
-          )}
-
-          {screen === "programmeComplete" && (
-            <ProgrammeCompleteScreen
-              key="programmeComplete"
-              levelScores={levelScores}
-              onRestart={handleRestart}
-            />
-          )}
-        </AnimatePresence>
-
+          ))}
+        </div>
       </div>
-    </main>
+
+      {screen === "slides" && (
+        <div className="mb-6">
+          <ProgressBar
+            done={slideIndex}
+            total={topics.length}
+            color={`bg-gradient-to-r ${currentLevelObj.color}`}
+          />
+        </div>
+      )}
+
+      {/* White card wrapper for content */}
+<div className="rounded-2xl p-6" style={{ background: "#fafaf7" }}>
+  <AnimatePresence mode="wait">
+    {screen === "levelSelect" && (
+      <LevelSelectScreen
+        key="levelSelect"
+        unlockedUpTo={unlockedUpTo}
+        levelScores={levelScores}
+        onSelectLevel={handleSelectLevel}
+      />
+    )}
+    {screen === "slides" && (
+      <SlideCard
+        key={`slide-${activeLevel}-${slideIndex}`}
+        topic={topics[slideIndex]}
+        topicIndex={slideIndex}
+        totalTopics={topics.length}
+        level={currentLevelObj}
+        onContinue={handleSlideNext}
+      />
+    )}
+    {screen === "quiz" && (
+      <QuizSession
+        key={`quiz-${activeLevel}`}
+        topics={topics}
+        level={currentLevelObj}
+        onComplete={handleQuizComplete}
+      />
+    )}
+    {screen === "levelResults" && (
+      <LevelResultsScreen
+        key="levelResults"
+        levelIndex={activeLevel}
+        answers={currentAnswers}
+        onContinue={handleLevelResultsContinue}
+        onRetry={handleRetryQuiz}
+      />
+    )}
+    {screen === "programmeComplete" && (
+      <ProgrammeCompleteScreen
+        key="programmeComplete"
+        levelScores={levelScores}
+        onRestart={handleRestart}
+      />
+    )}
+  </AnimatePresence>
+</div>
+
+    </div>
+  </main>
+);
+}
+
+export default function WrappedLearnPage() {
+  return (
+    <ProtectedRoute>
+      <LearnPage />
+    </ProtectedRoute>
   );
 }

@@ -13,7 +13,10 @@ import {
   X,
   Info,
   Settings,
-  MessageCircle
+  MessageCircle,
+  Zap,        // ADD THIS
+    BookOpen,   // ADD THIS
+
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -85,11 +88,13 @@ export default function Navbar({ onOpenChat }) {
         </Link>
 
         {/* NAV LINKS - Desktop */}
-        <div className="hidden md:flex items-center gap-6 lg:gap-8 text-gray-600">
-          <NavItem icon={<Leaf size={18} />} label="Sustainability" link="/sustainability" />
+<div className="hidden md:flex items-center gap-4 lg:gap-6 text-gray-600 text-sm">
+          <NavItem icon={<BookOpen size={18} />} label="Learn" link="/learn" />
           <NavItem icon={<Home size={18} />} label="Rental Hub" link="/rental-hub" />
           <NavItem icon={<Map size={18} />} label="Campus Map" link="/campus-map" />
           <NavItem icon={<FileText size={18} />} label="Certificates" link="/certificates" />
+            <NavItem icon={<Leaf size={18} />} label="Dashboard" link="/sustainability" />
+          <NavItem icon={<Zap size={18} />} label="Eco Clash" link="/eco-clash" />
           <NavItem icon={<Info size={18} />} label="About" link="/about" />
         </div>
 
@@ -157,10 +162,12 @@ export default function Navbar({ onOpenChat }) {
       {isMenuOpen && (
         <div className="md:hidden border-t border-gray-200 bg-white">
           <div className="px-4 py-3 space-y-1">
-            <MobileNavItem icon={<Leaf size={18} />} label="Sustainability" link="/sustainability" />
+<MobileNavItem icon={<BookOpen size={18} />} label="Learn" link="/learn" />        
             <MobileNavItem icon={<Home size={18} />} label="Rental Hub" link="/rental-hub" />
             <MobileNavItem icon={<Map size={18} />} label="Campus Map" link="/campus-map" />
             <MobileNavItem icon={<FileText size={18} />} label="Certificates" link="/certificates" />
+            <MobileNavItem icon={<Leaf size={18} />} label="Dashboard" link="/sustainability" />
+            <MobileNavItem icon={<Zap size={18} />} label="Eco Clash" link="/eco-clash" />
             <MobileNavItem icon={<Info size={18} />} label="About" link="/about" />
 
             <button
@@ -232,7 +239,7 @@ function NavItem({ icon, label, link }) {
   return (
     <Link
       href={link}
-      className="flex items-center gap-2 hover:text-emerald-600 transition-colors font-medium text-sm whitespace-nowrap"
+      className="flex items-center gap-1.5 hover:text-emerald-600 transition-colors font-medium text-sm whitespace-nowrap text-gray-500 hover:bg-emerald-50 px-3 py-1.5 rounded-full"
     >
       {icon}
       {label}

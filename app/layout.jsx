@@ -2,7 +2,6 @@
 
 import "./globals.css";
 import Navbar from "../components/Navbar";
-import Chatbot from "../components/Chatbot";
 import { usePathname } from "next/navigation";
 
 export default function RootLayout({ children }) {
@@ -17,7 +16,6 @@ export default function RootLayout({ children }) {
       <body className="bg-gray-50">
         {showNavbar && <Navbar />}
         {children}
-        <Chatbot />
       </body>
     </html>
   );

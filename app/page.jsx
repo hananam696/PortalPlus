@@ -11,6 +11,10 @@ import SearchBar from "../components/SearchBar";
 // SAGE CHATBOT — Constants & Helpers
 // ─────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────
+// SAGE CHATBOT — Constants & Helpers
+// ─────────────────────────────────────────────────────────────
+
 const QUICK_ACTIONS = [
   { label: "💡 Daily Tip",        mode: "tip" },
   { label: "🧮 My Footprint",     mode: "footprint" },
@@ -378,7 +382,6 @@ function SageChatbot() {
     </>
   );
 }
-
 // ─────────────────────────────────────────────────────────────
 // HOMEPAGE
 // ─────────────────────────────────────────────────────────────
