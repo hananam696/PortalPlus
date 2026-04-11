@@ -2,12 +2,11 @@
 
 import "./globals.css";
 import Navbar from "../components/Navbar";
+import ChatWidget from "../components/ChatWidget";
 import { usePathname } from "next/navigation";
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
-
-  // Pages where navbar should NOT show
   const hideNavbarPages = ["/login", "/signup"];
   const showNavbar = !hideNavbarPages.includes(pathname);
 
@@ -16,6 +15,7 @@ export default function RootLayout({ children }) {
       <body className="bg-gray-50">
         {showNavbar && <Navbar />}
         {children}
+        <ChatWidget />
       </body>
     </html>
   );

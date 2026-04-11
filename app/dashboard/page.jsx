@@ -90,11 +90,34 @@ function DashboardContent() {
   useEffect(() => {
     setMounted(true);
     if (typeof window !== "undefined") {
-      const d = {};
-      for (const key of Object.keys(localStorage)) {
-        if (key.startsWith("pp_")) d[key] = localStorage.getItem(key);
-      }
-      setData(d);
+// WITH
+const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+const userPrefix = storedUser?.id ? `u_${storedUser.id}_` : "";
+const d = {};
+for (const key of Object.keys(localStorage)) {
+  if (key.startsWith(`${userPrefix}pp_`)) {
+    d[key.replace(userPrefix, "")] = localStorage.getItem(key);
+  }
+}
+
+// Sync scores from pp_level_scores array (source of truth)
+const savedScores = localStorage.getItem(`${userPrefix}pp_level_scores`);
+if (savedScores) {
+  const scores = JSON.parse(savedScores).map(s => s === null ? undefined : s);
+  scores.forEach((answers, i) => {
+    if (answers != null) {
+      const score = answers.filter(Boolean).length;
+      const total = 10;
+      const pct = Math.round((score / total) * 100);
+      const passMark = i === 3 ? 75 : i === 4 ? 80 : 70;
+      const passed = pct >= passMark;
+      d[`pp_l${i+1}_passed`] = passed ? "true" : "false";
+      d[`pp_l${i+1}_score`] = score.toString();
+      d[`pp_l${i+1}_total`] = total.toString();
+    }
+  });
+}
+setData(d);
     }
   }, []);
 

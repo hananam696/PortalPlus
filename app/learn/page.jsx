@@ -1592,6 +1592,7 @@ function useReadingTimer(durationSeconds, active) {
 // ─────────────────────────────────────────────────────────────
 
 function LevelSelectScreen({ unlockedUpTo, levelScores, onSelectLevel }) {
+  const completedCount = levelScores.filter(s => s != null).length;
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -1599,8 +1600,36 @@ function LevelSelectScreen({ unlockedUpTo, levelScores, onSelectLevel }) {
       exit={{ opacity: 0, y: -16 }}
       transition={{ duration: 0.35 }}
     >
-      <div className="mb-8 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Learning Journey</h2>
+      {/* INTRO HERO */}
+      <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 mb-6 text-white">
+        <div className="flex items-center gap-3 mb-3">
+          <span className="text-3xl">🌍</span>
+          <div>
+            <h2 className="text-xl font-bold">EcoQuest</h2>
+            <p className="text-emerald-100 text-xs">Sustainability in Information Technology · 5 Levels</p>
+          </div>
+        </div>
+        <p className="text-sm text-emerald-50 leading-relaxed mb-4">
+          From digital footprints to green engineering — learn how IT shapes our planet and how you can make a difference as a tech professional.
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-white/15 rounded-xl p-3 text-center">
+            <p className="text-lg font-bold">5</p>
+            <p className="text-emerald-100 text-xs">Levels</p>
+          </div>
+          <div className="bg-white/15 rounded-xl p-3 text-center">
+            <p className="text-lg font-bold">50</p>
+            <p className="text-emerald-100 text-xs">Lessons</p>
+          </div>
+          <div className="bg-white/15 rounded-xl p-3 text-center">
+            <p className="text-lg font-bold">{completedCount}/5</p>
+            <p className="text-emerald-100 text-xs">Completed</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-6 text-center">
+        <h3 className="text-lg font-bold text-gray-900 mb-1">Your Learning Journey</h3>
         <p className="text-sm text-gray-500">
           Complete each level to unlock the next. Pass the quiz at 70%+ to advance.
         </p>
@@ -2083,8 +2112,24 @@ function ProgrammeCompleteScreen({ levelScores, onRestart }) {
 // ─────────────────────────────────────────────────────────────
 
 function LearnPage() {
-  const [levelScores, setLevelScores] = useState(Array(LEVELS.length).fill(undefined));
-const [unlockedUpTo, setUnlockedUpTo] = useState(LEVELS.length - 1);
+// WITH this
+const [levelScores, setLevelScores] = useState(() => {
+  if (typeof window === "undefined") return Array(LEVELS.length).fill(undefined);
+  const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+  const userPrefix = storedUser?.id ? `u_${storedUser.id}_` : "";
+  const saved = localStorage.getItem(`${userPrefix}pp_level_scores`);
+// WITH
+return saved
+  ? JSON.parse(saved).map((s) => s === null ? undefined : s)
+  : Array(LEVELS.length).fill(undefined);});
+
+const [unlockedUpTo, setUnlockedUpTo] = useState(() => {
+  if (typeof window === "undefined") return 0;
+  const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+  const userPrefix = storedUser?.id ? `u_${storedUser.id}_` : "";
+  const saved = localStorage.getItem(`${userPrefix}pp_unlocked_up_to`);
+  return saved ? parseInt(saved) : 0;
+});
   const [screen, setScreen] = useState("levelSelect");
   const [activeLevel, setActiveLevel] = useState(0);
   const [slideIndex, setSlideIndex] = useState(0);
@@ -2107,6 +2152,13 @@ const [unlockedUpTo, setUnlockedUpTo] = useState(LEVELS.length - 1);
       setScreen("quiz");
     }
   };
+  useEffect(() => {
+  if (typeof window === "undefined") return;
+  const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+  const userPrefix = storedUser?.id ? `u_${storedUser.id}_` : "";
+  localStorage.setItem(`${userPrefix}pp_level_scores`, JSON.stringify(levelScores));
+  localStorage.setItem(`${userPrefix}pp_unlocked_up_to`, unlockedUpTo.toString());
+}, [levelScores, unlockedUpTo]);
 
   const handleQuizComplete = (answers) => {
     const score = answers.filter(Boolean).length;
@@ -2130,12 +2182,10 @@ const [unlockedUpTo, setUnlockedUpTo] = useState(LEVELS.length - 1);
       localStorage.setItem(`${userPrefix}pp_l${levelNum}_total`,  topics.length.toString());
       localStorage.setItem(`${userPrefix}pp_l${levelNum}_date`,   new Date().toLocaleDateString());
 
-      const prevScores = JSON.parse(localStorage.getItem(`${userPrefix}pp_prev_scores`) || "{}");
-      if (!prevScores[levelNum] || score > parseInt(prevScores[levelNum])) {
-        prevScores[levelNum] = score;
-      }
-      localStorage.setItem(`${userPrefix}pp_prev_scores`, JSON.stringify(prevScores));
-
+// WITH this
+const prevScores = JSON.parse(localStorage.getItem(`${userPrefix}pp_prev_scores`) || "{}");
+prevScores[levelNum] = score;
+localStorage.setItem(`${userPrefix}pp_prev_scores`, JSON.stringify(prevScores));
       const optedIn = localStorage.getItem(`${userPrefix}pp_leaderboard_optin`) === "true";
       if (optedIn) {
         const uid   = localStorage.getItem(`${userPrefix}pp_uid`) || "anon_" + Date.now();
@@ -2191,6 +2241,11 @@ const [unlockedUpTo, setUnlockedUpTo] = useState(LEVELS.length - 1);
     setActiveLevel(0);
     setSlideIndex(0);
     setCurrentAnswers([]);
+    // ADD these lines inside handleRestart before the setScreen call
+const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+const userPrefix = storedUser?.id ? `u_${storedUser.id}_` : "";
+localStorage.removeItem(`${userPrefix}pp_level_scores`);
+localStorage.removeItem(`${userPrefix}pp_unlocked_up_to`);
     setScreen("levelSelect");
   };
 
@@ -2198,51 +2253,23 @@ const [unlockedUpTo, setUnlockedUpTo] = useState(LEVELS.length - 1);
 
   return (
   <main className="min-h-screen" style={{ background: "linear-gradient(160deg, #022c22 0%, #064e3b 35%, #065f46 65%, #0f766e 100%)" }}>
-    <div className="max-w-2xl mx-auto px-4 py-10">
-
+<div className="max-w-2xl mx-auto px-4 py-4">
       {/* Header */}
-      {process.env.NODE_ENV === 'development' && (
-  <button
-    onClick={() => setScreen("quiz")}
-    className="text-xs text-green-300 hover:text-white border border-green-700 px-2 py-0.5 rounded transition-colors"
-  >
-    Skip to quiz
-  </button>
-)}
-      <div className="flex items-center gap-3 mb-8">
-        {screen === "levelSelect" ? (
-          <Link href="/" className="text-green-300 hover:text-white transition-colors p-1">
-            <ArrowLeft size={20} />
-          </Link>
-        ) : (
-          <button
-            onClick={() => setScreen("levelSelect")}
-            className="text-green-300 hover:text-white transition-colors p-1"
-          >
-            <ArrowLeft size={20} />
-          </button>
-        )}
-        <div className="flex-1">
-          <h1 className="text-lg font-semibold text-white">Sustainability in IT</h1>
-          <p className="text-xs text-green-300">5 levels · 50 lessons · 50 questions</p>
-        </div>
-        <div className="flex items-center gap-1">
-          {levelScores.map((s, i) => (
-            <div
-              key={i}
-              className={`w-2 h-2 rounded-full ${
-                s !== undefined && s.filter(Boolean).length / ALL_TOPICS[i].length >= LEVELS[i].passMark / 100
-                  ? "bg-emerald-400"
-                  : s !== undefined
-                  ? "bg-red-400"
-                  : i <= unlockedUpTo
-                  ? "bg-green-600"
-                  : "bg-green-900"
-              }`}
-            />
-          ))}
-        </div>
-      </div>
+
+<div className="flex items-center gap-3 mb-8">
+  {screen === "levelSelect" ? (
+    <Link href="/" className="text-green-300 hover:text-white transition-colors p-1">
+      <ArrowLeft size={20} />
+    </Link>
+  ) : (
+    <button
+      onClick={() => setScreen("levelSelect")}
+      className="text-green-300 hover:text-white transition-colors p-1"
+    >
+      <ArrowLeft size={20} />
+    </button>
+  )}
+</div>
 
       {screen === "slides" && (
         <div className="mb-6">

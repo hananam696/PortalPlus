@@ -200,22 +200,48 @@ export default function EcoClashPage() {
             </div>
 
             {/* ── CTA ── */}
-            {!currentUid && (
-              <div className="mt-10 text-center p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-100">
-                <p className="text-gray-800 font-bold text-lg mb-1">Want to appear here?</p>
-                <p className="text-gray-500 text-sm mb-6">
-                  Complete sustainability levels to earn Eco Points and claim your rank.
-                </p>
-                <div className="flex gap-3 justify-center">
-                  <Link href="/login" className="bg-green-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-green-700 transition text-sm shadow-sm">
-                    Sign In
-                  </Link>
-                  <Link href="/signup" className="border-2 border-green-600 text-green-600 px-6 py-2.5 rounded-xl font-semibold hover:bg-green-50 transition text-sm">
-                    Sign Up
-                  </Link>
-                </div>
-              </div>
-            )}
+{!currentUid && (
+  <div className="mt-10 text-center p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-100">
+    {(() => {
+      const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "null") : null;
+      if (user) {
+        return (
+          <>
+            <div className="text-3xl mb-3">🌱</div>
+            <p className="text-gray-800 font-bold text-lg mb-1">You're not on the board yet!</p>
+            <p className="text-gray-500 text-sm mb-6">
+              Head to your Eco Dashboard, pick a display name, and join the leaderboard to claim your spot.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Link href="/sustainability" className="bg-green-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-green-700 transition text-sm shadow-sm">
+                🏆 Join Eco Clash
+              </Link>
+              <Link href="/learn" className="border-2 border-green-600 text-green-600 px-6 py-2.5 rounded-xl font-semibold hover:bg-green-50 transition text-sm">
+                Start EcoQuest
+              </Link>
+            </div>
+          </>
+        );
+      }
+      return (
+        <>
+          <p className="text-gray-800 font-bold text-lg mb-1">Want to appear here?</p>
+          <p className="text-gray-500 text-sm mb-6">
+            Create an account, complete EcoQuest levels, and claim your rank.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <Link href="/login" className="bg-green-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-green-700 transition text-sm shadow-sm">
+              Sign In
+            </Link>
+            <Link href="/signup" className="border-2 border-green-600 text-green-600 px-6 py-2.5 rounded-xl font-semibold hover:bg-green-50 transition text-sm">
+              Sign Up
+            </Link>
+          </div>
+        </>
+      );
+    })()}
+  </div>
+)}
           </>
         )}
       </div>

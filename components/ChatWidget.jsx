@@ -12,14 +12,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 // ── QUICK ACTIONS ─────────────────────────────────────────────
 const QUICK_ACTIONS = [
-  { label: "💡 Daily Tip", mode: "tip", text: "Give me today's eco tip!" },
-  { label: "🧮 My Footprint", mode: "footprint", text: "Help me estimate my carbon footprint." },
+  { label: "📚 My Progress", mode: null, text: "What levels have I completed and what's my score?" },
+  { label: "💡 Eco Tip", mode: "tip", text: "Give me today's eco tip!" },
+  { label: "🧮 Footprint", mode: "footprint", text: "Help me estimate my carbon footprint." },
   { label: "🌍 Quiz Me", mode: "quiz", text: "Quiz me on sustainability!" },
-  { label: "♻️ Campus Life", mode: null, text: "What are the best sustainability tips for campus life?" },
-  { label: "🌊 Water Saving", mode: null, text: "How can I save water as a university student?" },
-  { label: "⚡ Energy Tips", mode: null, text: "How do I reduce my energy use in my dorm?" },
-  { label: "🛍️ Ethical Shopping", mode: null, text: "How do I shop more ethically and sustainably?" },
-  { label: "🚲 Green Commute", mode: null, text: "What's the most eco-friendly way to commute to university?" },
+  { label: "♻️ Rental Hub", mode: null, text: "How does borrowing items instead of buying help the environment?" },
+  { label: "🏆 Eco Points", mode: null, text: "How do I earn more eco points on PortalPlus?" },
+  { label: "🚀 Next Level", mode: null, text: "What topics are covered in my next level?" },
 ];
 
 // ── FOLLOW-UP CHIPS per response type ────────────────────────
@@ -34,35 +33,27 @@ const FOLLOW_UPS = {
 // Replace the static WELCOME_MSG with this function
 function getWelcomeMessage() {
   if (typeof window === "undefined") return "Hey! I'm Sage 🌿 — your sustainability guide on PortalPlus. Ask me anything!";
-  
-  const path = window.location.pathname;
-  
-  // Check learn progress from localStorage
-  const completedLevels = Array.from({ length: 5 }, (_, i) => 
-    localStorage.getItem(`pp_l${i+1}_passed`) === "true"
-  );
-  const completedCount = completedLevels.filter(Boolean).length;
-  const nextLevel = completedLevels.findIndex(p => !p) + 1;
 
-  if (path.startsWith("/learn")) {
-    if (completedCount === 0) {
-      return "Starting Level 1? 🌱 Ask me anything about sustainability concepts covered here — I can explain, quiz you, or give examples.";
-    }
-    if (completedCount === 5) {
-      return "You've completed all 5 levels! 🚀 Want to test your knowledge with a quiz, or explore real-world sustainability topics?";
-    }
-    return `You're on Level ${nextLevel} — nice progress! 🌿 Ask me anything about the topics or want a quick quiz to prepare?`;
+  const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+  const userPrefix = storedUser?.id ? `u_${storedUser.id}_` : "";
+  const savedScores = JSON.parse(localStorage.getItem(`${userPrefix}pp_level_scores`) || "null");
+  const completedCount = savedScores ? savedScores.filter(s => s != null).length : 0;
+  const firstName = storedUser?.firstName || null;
+
+  const name = firstName ? `Hey ${firstName}` : "Hey";
+
+  if (completedCount === 0) {
+    return `${name}! I'm Sage 🌿 — your sustainability guide on PortalPlus.\n\nYou haven't started the Learn module yet — it covers 5 levels of sustainability in IT, from digital footprints to green engineering. Want to know what's in it, or just ask me anything green?`;
   }
 
-  if (path.startsWith("/sustainability") || path.startsWith("/dashboard")) {
-    const points = parseInt(localStorage.getItem("pp_eco_points") || "0");
-    if (completedCount === 0) {
-      return "Your eco dashboard is empty — start Level 1 in the Learn module to earn your first points! 🌱";
-    }
-    return `You have ${completedCount}/5 levels done 🌍 Ask me how to earn more eco points or what your footprint looks like.`;
+  if (completedCount === 5) {
+    return `${name}, you've completed all 5 levels! 🚀 That's the full Sustainability in IT programme.\n\nWant to test yourself with a quiz, explore a topic deeper, or estimate your real carbon footprint?`;
   }
 
-  return "Hey! I'm **Sage** 🌿 — your sustainability guide on PortalPlus.\n\nI can give you daily eco tips, estimate your carbon footprint, quiz you on green topics, and answer any sustainability questions.\n\nPick a quick action above or ask me anything!";
+  const nextLevel = completedCount + 1;
+  const levelNames = ["Planet First", "Digital Footprint", "Sustainable Systems", "Green Engineer", "Impact Maker"];
+
+  return `${name}! I'm Sage 🌿 — you're on Level ${nextLevel}: **${levelNames[completedCount]}** in the Learn module.\n\nAsk me anything about the topics, want a hint, or ready for a quick quiz to prepare?`;
 }
 
 // ── DETECT RESPONSE TYPE ─────────────────────────────────────
@@ -84,19 +75,20 @@ function formatMessage(text) {
 }
 
 // ── GIBBERISH DETECTION ───────────────────────────────────────
+// WITH
 function isGibberish(text) {
-  const t = text.trim();
+  const t = text.trim().toLowerCase();
+  const greetings = ["hi", "hey", "hello", "helo", "hiya", "yo", "sup", "ok", "okay"];
+  if (greetings.includes(t)) return false;
   if (t.length < 2) return true;
-  // Too short to be meaningful
-  if (t.length < 4 && !/\s/.test(t)) return true;
   const words = t.split(/\s+/);
   const gibWords = words.filter(w => {
-    if (w.length <= 2) return false;
+    if (w.length <= 3) return false;
     const hasVowel = /[aeiou]/i.test(w);
-    const hasRepeats = /(.)\1{2,}/.test(w);
+    const hasRepeats = /(.)\1{3,}/.test(w);
     return !hasVowel || hasRepeats;
   });
-  return gibWords.length / words.length >= 0.5;
+  return gibWords.length / words.length >= 0.7;
 }
 
 // ── VARIED REDIRECTS ──────────────────────────────────────────
@@ -144,64 +136,108 @@ const [messages, setMessages] = useState(() => [{
       .filter(m => m.id !== "welcome")
       .map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.content }));
 
-  async function sendMessage(text, mode = null) {
-    const trimmed = text.trim();
-    if (!trimmed || loading) return;
+async function sendMessage(text, mode = null) {
+  const trimmed = text.trim();
+  if (!trimmed || loading) return;
 
-    // Gibberish guard
-    if (isGibberish(trimmed)) {
-      setMessages(prev => [
-        ...prev,
-        { role: "user", content: trimmed, id: Date.now(), followUps: [] },
-        { role: "assistant", content: "Didn't quite catch that! Ask me something green 🌿", id: Date.now() + 1, followUps: [] },
-      ]);
-      setInput("");
-      focusInput();
-      return;
-    }
-
-    setMessages(prev => [...prev, { role: "user", content: trimmed, id: Date.now(), followUps: [] }]);
+  if (isGibberish(trimmed)) {
+    setMessages(prev => [
+      ...prev,
+      { role: "user", content: trimmed, id: Date.now(), followUps: [] },
+      { role: "assistant", content: "Didn't quite catch that! Ask me something green 🌿", id: Date.now() + 1, followUps: [] },
+    ]);
     setInput("");
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed, history: buildHistory(), mode }),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        const err =
-          res.status === 401 ? "⚠️ API key issue — please contact the admin."
-            : res.status === 429 ? "⚠️ Too many requests! Give me a moment and try again."
-              : res.status >= 500 ? "⚠️ Server hiccup — try again in a few seconds."
-                : `⚠️ Something went wrong (${res.status}).`;
-        throw new Error(err);
-      }
-
-      const type = mode || detectResponseType(data.answer);
-      const followUps = FOLLOW_UPS[type] || FOLLOW_UPS.general;
-
-      setMessages(prev => [...prev, {
-        role: "assistant", content: data.answer, followUps, id: Date.now(),
-      }]);
-    } catch (err) {
-      setMessages(prev => [...prev, {
-        role: "assistant", content: err.message, followUps: [], id: Date.now(), isError: true,
-      }]);
-    } finally {
-      setLoading(false);
-    }
+    focusInput();
+    return;
   }
+
+  setMessages(prev => [...prev, { role: "user", content: trimmed, id: Date.now(), followUps: [] }]);
+  setInput("");
+  setLoading(true);
+
+  try {
+
+  const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+const userPrefix = storedUser?.id ? `u_${storedUser.id}_` : "";
+const savedScores = JSON.parse(localStorage.getItem(`${userPrefix}pp_level_scores`) || "null");
+const unlockedUpTo = parseInt(localStorage.getItem(`${userPrefix}pp_unlocked_up_to`) || "0");
+
+// Rental activity
+const allRentals = JSON.parse(localStorage.getItem("rental_requests") || "[]");
+const myRentals = allRentals.filter(r => r.renterEmail === storedUser?.email);
+
+// Eco points (recalculate inline)
+let ecoPoints = 0;
+for (let i = 1; i <= 5; i++) {
+  const passed = localStorage.getItem(`${userPrefix}pp_l${i}_passed`) === "true";
+  const score = parseInt(localStorage.getItem(`${userPrefix}pp_l${i}_score`) || "0");
+  if (passed) { ecoPoints += 100; if (score >= 9) ecoPoints += 50; if (score === 10) ecoPoints += 100; }
+}
+const allPassed = Array.from({length:5},(_,i) => localStorage.getItem(`${userPrefix}pp_l${i+1}_passed`) === "true").every(Boolean);
+if (allPassed) ecoPoints += 200;
+
+// Tier
+const tiers = [
+  {name:"Seedling",min:0},{name:"Sapling",min:100},{name:"Forest",min:300},
+  {name:"Canopy",min:600},{name:"Guardian",min:1000}
+];
+const tierName = [...tiers].reverse().find(t => ecoPoints >= t.min)?.name || "Seedling";
+
+const userContext = {
+  levelsCompleted: savedScores ? savedScores.filter(s => s != null).length : 0,
+  levelScores: savedScores ? savedScores.map((s) => s ? Math.round((s.filter(Boolean).length / 10) * 100) : null) : [],
+  unlockedUpTo,
+  userName: storedUser?.firstName || null,
+  ecoPoints,
+  tierName,
+  rentalsCount: myRentals.length,
+  currentPage: typeof window !== "undefined" ? window.location.pathname : "/",
+};
+
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: trimmed, history: buildHistory(), mode, userContext }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      const err =
+        res.status === 401 ? "⚠️ API key issue — please contact the admin."
+          : res.status === 429 ? "⚠️ Too many requests! Give me a moment and try again."
+            : res.status >= 500 ? "⚠️ Server hiccup — try again in a few seconds."
+              : `⚠️ Something went wrong (${res.status}).`;
+      throw new Error(err);
+    }
+
+    const type = mode || detectResponseType(data.answer);
+    const followUps = FOLLOW_UPS[type] || FOLLOW_UPS.general;
+
+    setMessages(prev => [...prev, {
+      role: "assistant", content: data.answer, followUps, id: Date.now(),
+    }]);
+  } catch (err) {
+    setMessages(prev => [...prev, {
+      role: "assistant", content: err.message, followUps: [], id: Date.now(), isError: true,
+    }]);
+  } finally {
+    setLoading(false);
+  }
+}
 
   function handleKeyDown(e) {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
   }
 
-  function resetChat() {
-    setMessages([WELCOME_MSG]);
+// WITH
+function resetChat() {
+  setMessages([{
+    role: "assistant",
+    content: getWelcomeMessage(),
+    followUps: [],
+    id: "welcome",
+  }]);
     setInput("");
     focusInput();
   }

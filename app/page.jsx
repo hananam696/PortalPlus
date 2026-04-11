@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, BookOpen, FileText, Home, Map, RotateCcw, Send, X } from "lucide-react";
+import { ArrowRight, BookOpen, FileText, Home, Map } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -155,233 +155,7 @@ function MessageBubble({ msg }) {
 // SAGE FLOATING CHATBOT WIDGET
 // ─────────────────────────────────────────────────────────────
 
-function SageChatbot() {
-  const [isOpen, setIsOpen]       = useState(false);
-  const [messages, setMessages]   = useState([WELCOME_MESSAGE]);
-  const [input, setInput]         = useState("");
-  const [loading, setLoading]     = useState(false);
-  const [failCount, setFailCount] = useState(0);
-  const [unread, setUnread]       = useState(0);
-  const bottomRef                 = useRef(null);
-  const inputRef                  = useRef(null);
-  const fallbackIdxRef            = useRef(0);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
-
-  useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 100);
-      setUnread(0);
-    }
-  }, [isOpen]);
-
-  const buildHistory = useCallback((msgs) =>
-    msgs
-      .filter((m) => m.id !== "welcome")
-      .map((m) => ({ role: m.role, content: m.text })),
-  []);
-
-  const sendMessage = useCallback(async ({ text, mode }) => {
-    if (loading) return;
-    if (!text?.trim() && !mode) return;
-
-    const userMsg = text?.trim();
-    const userEntry = userMsg
-      ? { id: genId(), role: "user", text: userMsg, timestamp: Date.now() }
-      : null;
-
-    setMessages((prev) => (userEntry ? [...prev, userEntry] : prev));
-    setInput("");
-    setLoading(true);
-
-    try {
-      const history = buildHistory(userEntry ? [...messages, userEntry] : messages);
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userMsg || undefined,
-          history,
-          mode: mode || undefined,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || "API error");
-
-      const botMsg = { id: genId(), role: "assistant", text: data.answer, timestamp: Date.now() };
-      setMessages((prev) => [...prev, botMsg]);
-      setFailCount(0);
-      if (!isOpen) setUnread((u) => u + 1);
-
-    } catch (err) {
-      const fallback = FALLBACK_VARIANTS[fallbackIdxRef.current % FALLBACK_VARIANTS.length];
-      fallbackIdxRef.current += 1;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: genId(),
-          role: "assistant",
-          text: failCount >= 2
-            ? "Looks like we're stuck! Try one of the quick actions above to get back on track 🌿"
-            : fallback,
-          timestamp: Date.now(),
-        },
-      ]);
-      setFailCount((c) => c + 1);
-    } finally {
-      setLoading(false);
-      if (isOpen) inputRef.current?.focus();
-    }
-  }, [loading, messages, buildHistory, failCount, isOpen]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    sendMessage({ text: input });
-  };
-
-  const handleReset = () => {
-    setMessages([WELCOME_MESSAGE]);
-    setInput("");
-    setFailCount(0);
-    fallbackIdxRef.current = 0;
-  };
-
-  return (
-    <>
-      <motion.button
-        onClick={() => setIsOpen((o) => !o)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/30 flex items-center justify-center transition-colors"
-        whileHover={{ scale: 1.07 }}
-        whileTap={{ scale: 0.95 }}
-        aria-label={isOpen ? "Close Sage chat" : "Open Sage sustainability chat"}
-      >
-        <AnimatePresence mode="wait">
-          {isOpen ? (
-            <motion.span
-              key="close"
-              initial={{ rotate: -90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: 90, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <X size={22} />
-            </motion.span>
-          ) : (
-            <motion.span
-              key="open"
-              initial={{ rotate: 90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: -90, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="text-xl"
-            >
-              🌿
-            </motion.span>
-          )}
-        </AnimatePresence>
-        {!isOpen && unread > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-            {unread}
-          </span>
-        )}
-      </motion.button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 24, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 24, scale: 0.95 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed bottom-24 right-6 z-50 w-[360px] sm:w-[400px] flex flex-col rounded-2xl overflow-hidden shadow-2xl shadow-black/15 border border-emerald-100"
-            style={{ maxHeight: "580px" }}
-            aria-label="Sage sustainability chat"
-            role="dialog"
-            aria-modal="true"
-          >
-            <div className="bg-emerald-600 px-4 py-3 flex items-center justify-between flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">
-                  🌿
-                </div>
-                <div>
-                  <p className="text-white font-semibold text-sm leading-tight">Sage</p>
-                  <p className="text-emerald-200 text-[11px]">Sustainability Guide · PortalPlus</p>
-                </div>
-              </div>
-              <button
-                onClick={handleReset}
-                className="text-white/70 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10"
-                aria-label="Reset conversation"
-                title="Reset conversation"
-              >
-                <RotateCcw size={15} />
-              </button>
-            </div>
-
-            <div className="bg-emerald-50 px-3 py-2 flex gap-1.5 overflow-x-auto flex-shrink-0 scrollbar-hide border-b border-emerald-100">
-              {QUICK_ACTIONS.map((action) => (
-                <button
-                  key={action.mode}
-                  onClick={() => sendMessage({ mode: action.mode })}
-                  disabled={loading}
-                  className="text-[11px] whitespace-nowrap bg-white border border-emerald-200 text-emerald-700 rounded-full px-2.5 py-1 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all duration-150 disabled:opacity-50 flex-shrink-0"
-                >
-                  {action.label}
-                </button>
-              ))}
-            </div>
-
-            <div
-              className="flex-1 overflow-y-auto p-4 bg-gray-50/80"
-              aria-live="polite"
-              aria-label="Chat messages"
-            >
-              {messages.map((msg) => (
-                <MessageBubble key={msg.id} msg={msg} />
-              ))}
-              {loading && <TypingIndicator />}
-              <div ref={bottomRef} />
-            </div>
-
-            <form
-              onSubmit={handleSubmit}
-              className="border-t border-emerald-100 bg-white p-3 flex gap-2 items-center flex-shrink-0"
-            >
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask Sage anything green..."
-                disabled={loading}
-                maxLength={500}
-                autoComplete="off"
-                className="flex-1 text-[13px] bg-gray-50 border border-gray-200 rounded-full px-4 py-2 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all disabled:opacity-50 placeholder-gray-400 text-gray-800"
-                aria-label="Type your message to Sage"
-              />
-              <button
-                type="submit"
-                disabled={loading || !input.trim()}
-                className="w-9 h-9 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-                aria-label="Send message"
-              >
-                <Send size={15} />
-              </button>
-            </form>
-
-            <div className="bg-white px-4 py-1.5 border-t border-gray-100 text-center flex-shrink-0">
-              <p className="text-[10px] text-gray-400">Powered by PortalPlus 🌿</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
-}
 // ─────────────────────────────────────────────────────────────
 // HOMEPAGE
 // ─────────────────────────────────────────────────────────────
@@ -495,14 +269,14 @@ export default function HomePage() {
                     <div>
                       <div className="flex items-center gap-2 mb-0.5">
                         <h3 className="text-base font-semibold text-gray-900">
-                          Sustainability in IT — Learning Module
+EcoQuest 🌿
                         </h3>
                         <span className="px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 rounded-full">
-                          New
+                            🌱 Start Here
                         </span>
                       </div>
                       <p className="text-sm text-gray-600">
-                        10 lessons · 10 quiz questions · ~15 min
+5 levels · 50 lessons · test your knowledge · earn eco points
                       </p>
                     </div>
                   </div>
@@ -527,7 +301,6 @@ export default function HomePage() {
 
       </div>
 
-      <SageChatbot />
     </main>
   );
 }

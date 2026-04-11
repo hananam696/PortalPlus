@@ -18,6 +18,7 @@ import {
   BookOpen,
   Calendar,
   Inbox,
+  Zap,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -72,7 +73,7 @@ export default function Navbar({ onOpenChat }) {
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+<div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
 
         {/* LOGO */}
         <Link href="/" className="flex items-center gap-2 sm:gap-3">
@@ -90,51 +91,38 @@ export default function Navbar({ onOpenChat }) {
         </Link>
 
         {/* NAV LINKS - Desktop */}
-<div className="hidden md:flex items-center gap-4 lg:gap-6 text-gray-600 text-sm">
-          <NavItem icon={<BookOpen size={18} />} label="Learn" link="/learn" />
+        <div className="hidden md:flex items-center gap-4 lg:gap-6 text-gray-600 text-sm">
+<NavItem icon={<BookOpen size={18} />} label="EcoQuest" link="/learn" />
           <NavItem icon={<Home size={18} />} label="Rental Hub" link="/rental-hub" />
           <NavItem icon={<Map size={18} />} label="Campus Map" link="/campus-map" />
           <NavItem icon={<FileText size={18} />} label="Certificates" link="/certificates" />
-            <NavItem icon={<Leaf size={18} />} label="Dashboard" link="/sustainability" />
-          <NavItem icon={<Zap size={18} />} label="Eco Clash" link="/eco-clash" />
+          <NavItem icon={<Zap size={18} />} label="EcoClash" link="/eco-clash" />
           <NavItem icon={<Info size={18} />} label="About" link="/about" />
         </div>
 
         {/* RIGHT SECTION */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* AI CHAT BUTTON */}
-          <button
-            onClick={onOpenChat}
-            className="hidden md:flex items-center gap-2 bg-emerald-600 text-white px-3 lg:px-4 py-2 rounded-full hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md"
-          >
-            <MessageCircle size={18} />
-            <span className="font-medium text-sm lg:text-base">AI Assistant</span>
-          </button>
 
           {/* AUTH SECTION */}
           {isLoggedIn && user ? (
             <div className="flex items-center gap-1 sm:gap-2">
               {/* User Menu - Desktop */}
               <div className="relative group">
-                <button className="hidden md:flex items-center gap-2 sm:gap-3 bg-emerald-50 pl-2 sm:pl-3 pr-1 py-1 rounded-full hover:bg-emerald-100 transition cursor-pointer">
-                  <span className="text-xs sm:text-sm font-medium text-emerald-700 max-w-[100px] truncate">
-                    {getDisplayName()}
-                  </span>
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm shadow-sm">
-                    {getUserInitials()}
-                  </div>
-                </button>
-                
+<button className="hidden md:flex items-center justify-center w-9 h-9 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-full hover:opacity-90 transition cursor-pointer text-white font-semibold text-sm shadow-sm">
+  {getUserInitials()}
+</button>
+
                 {/* Dropdown Menu */}
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <div className="p-2">
-                    <Link
-                      href="/profile"
-                      className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-emerald-50 rounded-lg transition"
-                    >
-                      <User size={16} />
-                      <span className="text-sm">My Profile</span>
-                    </Link>
+                  <Link href="/profile" className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-emerald-50 rounded-lg transition">
+  <User size={16} />
+  <span className="text-sm">My Profile</span>
+</Link>
+<Link href="/sustainability" className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-emerald-50 rounded-lg transition">
+  <Leaf size={16} />
+  <span className="text-sm">My Dashboard</span>
+</Link>
                     <Link
                       href="/rental-hub/my-rentals"
                       className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-emerald-50 rounded-lg transition"
@@ -193,13 +181,13 @@ export default function Navbar({ onOpenChat }) {
       {isMenuOpen && (
         <div className="md:hidden border-t border-gray-200 bg-white max-h-[calc(100vh-70px)] overflow-y-auto">
           <div className="px-4 py-3 space-y-1">
-<MobileNavItem icon={<BookOpen size={18} />} label="Learn" link="/learn" />        
+            <MobileNavItem icon={<BookOpen size={18} />} label="EcoQuest" link="/learn" />
             <MobileNavItem icon={<Home size={18} />} label="Rental Hub" link="/rental-hub" />
             <MobileNavItem icon={<Map size={18} />} label="Campus Map" link="/campus-map" />
             <MobileNavItem icon={<FileText size={18} />} label="Certificates" link="/certificates" />
-            <MobileNavItem icon={<Leaf size={18} />} label="Dashboard" link="/sustainability" />
-            <MobileNavItem icon={<Zap size={18} />} label="Eco Clash" link="/eco-clash" />
+            <MobileNavItem icon={<Zap size={18} />} label="EcoClash" link="/eco-clash" />
             <MobileNavItem icon={<Info size={18} />} label="About" link="/about" />
+
 
             <button
               onClick={() => { onOpenChat?.(); setIsMenuOpen(false); }}
@@ -222,12 +210,12 @@ export default function Navbar({ onOpenChat }) {
                     </div>
                   </div>
                 </div>
-                
+
                 <MobileNavItem icon={<User size={18} />} label="My Profile" link="/profile" />
                 <MobileNavItem icon={<BookOpen size={18} />} label="My Rentals" link="/rental-hub/my-rentals" />
                 <MobileNavItem icon={<Inbox size={18} />} label="Incoming Requests" link="/rental-hub/incoming-requests" />
                 <MobileNavItem icon={<Settings size={18} />} label="Settings" link="/profile/settings" />
-                
+
                 <button
                   onClick={() => { handleLogout(); setIsMenuOpen(false); }}
                   className="flex items-center gap-3 w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl transition-colors mt-2"
@@ -262,17 +250,17 @@ export default function Navbar({ onOpenChat }) {
   );
 }
 
-function NavItem({ icon, label, link, pathname }) {
+function NavItem({ icon, label, link }) {
+  const pathname = usePathname();
   const isActive = pathname === link || pathname.startsWith(link + "/");
 
   return (
     <Link
       href={link}
-      className={`flex items-center gap-2 font-medium text-sm whitespace-nowrap transition-colors ${
-        isActive
-          ? "bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full"
-          : "text-gray-600 hover:text-emerald-600"
-      }`}
+      className={`flex items-center gap-2 font-medium text-sm whitespace-nowrap transition-colors ${isActive
+        ? "bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full"
+        : "text-gray-600 hover:text-emerald-600"
+        }`}
     >
       {icon}
       {label}

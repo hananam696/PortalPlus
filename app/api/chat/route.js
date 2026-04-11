@@ -1,8 +1,3 @@
-// app/api/chat/route.js
-// ─────────────────────────────────────────────────────────────
-// PortalPlus — Sage Sustainability Chatbot (Groq / Next.js App Router)
-// ─────────────────────────────────────────────────────────────
-
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions";
 const MODEL        = "llama-3.3-70b-versatile";
@@ -44,13 +39,29 @@ Your users are university students who want practical, campus-relevant sustainab
 
 export async function POST(req) {
   try {
-    const { message, history = [], mode } = await req.json();
+    const { message, history = [], mode, userContext } = await req.json();
 
     if (!message && !mode) {
       return Response.json({ error: "No message provided" }, { status: 400 });
     }
 
-    // Mode → inject a clear intent into the user message
+const contextBlock = userContext ? `
+== USER CONTEXT ==
+- Name: ${userContext.userName || "Student"}
+- Levels completed: ${userContext.levelsCompleted}/5
+- Level scores (%): ${userContext.levelScores?.map((s,i) => s != null ? `L${i+1}:${s}%` : `L${i+1}:not done`).join(", ")}
+- Unlocked up to: Level ${(userContext.unlockedUpTo || 0) + 1}
+- Eco points: ${userContext.ecoPoints} (${userContext.tierName} tier)
+- Items rented via Rental Hub: ${userContext.rentalsCount}
+- Current page: ${userContext.currentPage}
+- Level topics: L1=Planet First (sustainability basics, why IT matters, e-waste), L2=Digital Footprint (internet energy use, data centres, streaming carbon cost, device lifecycle), L3=Sustainable Systems (Green IT discipline, circular economy, software architecture energy, open source), L4=Green Engineer (carbon-aware computing, algorithmic efficiency, AI training costs, SCI spec), L5=Impact Maker (Green IT careers, open source tools, EU CSRD policy, professional ethics)
+
+If on /rental-hub or /rental-hub/*, connect sustainability advice to borrowing vs buying and carbon savings.
+If on /learn, reference their level progress and encourage next steps.
+If on /sustainability or /eco-clash, discuss their tier and how to rank up.
+If rentalsCount > 0, acknowledge their rental activity positively.
+` : "";
+
     const modePrompts = {
       tip:       "Give me one specific, actionable eco tip I can do today as a university student. Format: 💡 [Title] — [1-2 sentence explanation] — [estimated impact].",
       footprint: "I want to estimate my carbon footprint. Start by asking me the 4 questions you need, one at a time.",
@@ -60,8 +71,8 @@ export async function POST(req) {
     const userContent = modePrompts[mode] || message;
 
     const messages = [
-      { role: "system", content: SAGE_PERSONA },
-      ...history.slice(-12), // keep last 12 exchanges for context (avoids token overflow)
+      { role: "system", content: SAGE_PERSONA + contextBlock },
+      ...history.slice(-12),
       { role: "user", content: userContent },
     ];
 
