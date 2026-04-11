@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, BookOpen, FileText, Home, Map, Leaf, Zap, Users, Award, Shield, TrendingUp, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, FileText, Home, Map, Leaf, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -67,14 +67,14 @@ export default function HomePage() {
               Advancing sustainability awareness, learning, and success for IT students.
             </p>
             <div className="flex items-center justify-center gap-4 mt-4 flex-wrap">
-              <span className="inline-flex items-center gap-1 text-sm text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
-                <Leaf size={14} /> Eco-Friendly
+              <span className="inline-flex items-center text-sm text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                Eco-Friendly
               </span>
-              <span className="inline-flex items-center gap-1 text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-                <Users size={14} /> Student-Led
+              <span className="inline-flex items-center text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                Student-Led
               </span>
-              <span className="inline-flex items-center gap-1 text-sm text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
-                <Award size={14} /> Earn Rewards
+              <span className="inline-flex items-center text-sm text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
+                Earn Rewards
               </span>
             </div>
           </motion.div>
@@ -124,21 +124,21 @@ export default function HomePage() {
                     <div>
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 className="text-xl font-bold text-gray-900">
-                          EcoQuest 🌿
+                          EcoQuest
                         </h3>
                         <span className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-100 rounded-full">
-                          🌱 Start Here
+                          Start Here
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 max-w-md">
                         Master sustainability through interactive levels, quizzes, and real-world challenges.
                       </p>
                       <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">🎯 5 Levels</span>
+                        <span>🎯 5 Levels</span>
                         <span>•</span>
-                        <span className="flex items-center gap-1">📚 50+ Lessons</span>
+                        <span>📚 50+ Lessons</span>
                         <span>•</span>
-                        <span className="flex items-center gap-1">⭐ Earn Eco Points</span>
+                        <span>⭐ Earn Eco Points</span>
                       </div>
                     </div>
                   </div>
@@ -160,7 +160,6 @@ export default function HomePage() {
               Icon={Home}
               title="Rental Hub"
               description="Borrow and share textbooks, calculators, and study materials with fellow students. Save money and reduce waste."
-              gradient="from-blue-500 to-indigo-500"
               badge="Share & Save"
             />
             <EnhancedCard
@@ -168,7 +167,6 @@ export default function HomePage() {
               Icon={Map}
               title="Campus Map"
               description="Navigate UDST with ease. Find classrooms, labs, libraries, and eco-friendly spots around campus."
-              gradient="from-purple-500 to-pink-500"
               badge="Interactive"
             />
             <EnhancedCard
@@ -176,7 +174,6 @@ export default function HomePage() {
               Icon={FileText}
               title="Certificates"
               description="Track your achievements and earn official certificates for completing sustainability programs."
-              gradient="from-amber-500 to-orange-500"
               badge="Verified"
             />
           </div>
@@ -204,8 +201,8 @@ export default function HomePage() {
   );
 }
 
-// Enhanced Card Component with Description
-function EnhancedCard({ href, Icon, title, description, gradient, badge }) {
+// Enhanced Card Component
+function EnhancedCard({ href, Icon, title, description, badge }) {
   return (
     <Link href={href}>
       <motion.div
@@ -214,9 +211,8 @@ function EnhancedCard({ href, Icon, title, description, gradient, badge }) {
         className="group h-full bg-white border border-gray-200 rounded-2xl p-6 transition-all duration-300 cursor-pointer hover:shadow-xl hover:border-gray-300"
       >
         <div className="mb-4">
-          <div
-  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300`}
->
+          <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors duration-300">
+            <Icon size={22} className="text-gray-700" strokeWidth={1.8} />
           </div>
         </div>
 
@@ -232,7 +228,7 @@ function EnhancedCard({ href, Icon, title, description, gradient, badge }) {
         </p>
 
         <div className="flex items-center justify-end mt-4 pt-2 border-t border-gray-100">
-          <ArrowRight size={16} className="text-gray-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all duration-300" />
+          <ArrowRight size={16} className="text-gray-400 group-hover:text-gray-700 group-hover:translate-x-1 transition-all duration-300" />
         </div>
       </motion.div>
     </Link>

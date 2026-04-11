@@ -1,18 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 
-export default function LoginPage() {
+// Inner component that uses useSearchParams
+function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from") || "/";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,18 +32,8 @@ export default function LoginPage() {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
         
-        // Check for pending rental requests after login
-        const allRequests = JSON.parse(localStorage.getItem("rental_requests") || "[]");
-        const pendingRequests = allRequests.filter(
-          req => req.ownerEmail === data.user.email && req.status === "pending"
-        );
-        
-        if (pendingRequests.length > 0) {
-          // The notification will show via layout
-          console.log(`You have ${pendingRequests.length} pending rental requests`);
-        }
-        
-        router.push("/");
+        // ✅ Redirect back to the page they tried to access, or home
+        router.push(from);
       } else {
         alert(data.error || "Login failed");
       }
@@ -150,5 +143,14 @@ export default function LoginPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+// Main component with Suspense
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function ProtectedRoute({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     // Check if user is logged in
@@ -14,13 +15,17 @@ export default function ProtectedRoute({ children }) {
     const user = localStorage.getItem("user");
 
     if (!token || !user) {
-      // Not logged in, redirect to login
-      router.push("/login");
+      // ✅ Store the attempted URL to redirect back after login
+      // Instead of replacing, we use replace to avoid creating a history entry
+      // that would cause back button issues
+      const loginUrl = new URL("/login", window.location.origin);
+      loginUrl.searchParams.set("from", pathname);
+      router.replace(loginUrl.toString());
     } else {
       setIsAuthenticated(true);
     }
     setLoading(false);
-  }, [router]);
+  }, [router, pathname]);
 
   if (loading) {
     return (
